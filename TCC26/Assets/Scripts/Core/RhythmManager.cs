@@ -51,6 +51,8 @@ public class RhythmManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        if (GetComponent<AudioSource>() == null)
+            gameObject.AddComponent<AudioSource>();
     }
 
     void Start()
