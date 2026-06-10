@@ -149,13 +149,5 @@ public class RhythmManager : MonoBehaviour
         double timeSinceBeat = AudioSettings.dspTime - (nextBeatTime - beatInterval);
         return timeToBeat < toleranceSeconds || timeSinceBeat < toleranceSeconds;
     }
-
-#if UNITY_EDITOR
-    void OnGUI()
-    {
-        if (!Application.isPlaying) return;
-        GUI.Label(new Rect(10, 10, 200, 20), $"BPM: {bpm} | Beat: {currentBeat + 1}/4");
-        GUI.Label(new Rect(10, 30, 200, 20), $"Progress: {GetBeatProgress():F2}");
-    }
-#endif
+    
 }
