@@ -118,8 +118,8 @@ public class MainMenuController : MonoBehaviour
         // Logo desce + fade in
         float elapsed = 0f;
         float duration = 0.6f;
-        Vector2 startPos = new Vector2(0, 150f);
-        Vector2 endPos   = new Vector2(0, 0);
+        Vector2 startPos = new Vector2(0, 170f);
+        Vector2 endPos   = new Vector2(0, 150);
 
         while (elapsed < duration)
         {

@@ -1,7 +1,8 @@
 using UnityEngine;
 
 /// <summary>
-/// POP ADVENTURE - MainMenuBackground v4
+/// POP ADVENTURE - MainMenuBackground v5
+/// Corrigido: material duplicado removido, URP compatível
 /// </summary>
 public class MainMenuBackground : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class MainMenuBackground : MonoBehaviour
 
     [Header("Notas Musicais (Partículas)")]
     [SerializeField] private Sprite musicNoteSprite;
+    [SerializeField] private Material noteParticleMaterial; // arraste o material URP aqui
     [SerializeField] private int emissionRate = 8;
     [SerializeField] private float spawnWidth = 12f;
     [SerializeField] [Range(0f, 1f)] private float noteAlpha = 0.35f;
@@ -27,19 +29,15 @@ public class MainMenuBackground : MonoBehaviour
 
     void Start()
     {
-        // Destrói filhos antigos antes de criar novos
-        // (evita duplicatas ao dar Stop + Play no Editor)
         foreach (Transform child in transform)
             Destroy(child.gameObject);
 
-        // Aguarda um frame para garantir que os destroys processaram
         StartCoroutine(InitDelayed());
     }
 
     private System.Collections.IEnumerator InitDelayed()
     {
-        yield return null; // espera 1 frame
-
+        yield return null;
         CreateBackground();
         CreateNoteParticles();
         if (discSprite != null) CreateDecorativeDisc();
@@ -56,7 +54,6 @@ public class MainMenuBackground : MonoBehaviour
 
     private void OnBeat()
     {
-        // Checa null antes de acessar — evita MissingReferenceException
         if (ps != null && ps.gameObject != null && ps.isPlaying)
             ps.Emit(2);
     }
@@ -80,8 +77,6 @@ public class MainMenuBackground : MonoBehaviour
         go.transform.localPosition = new Vector3(0f, -6f, 0f);
 
         ps = go.AddComponent<ParticleSystem>();
-
-        // Para o sistema antes de configurar (evita erro de "still playing")
         ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
 
         var main = ps.main;
@@ -108,7 +103,6 @@ public class MainMenuBackground : MonoBehaviour
         shape.shapeType = ParticleSystemShapeType.SingleSidedEdge;
         shape.radius    = spawnWidth;
 
-        // Todos os eixos no mesmo modo (MinMaxCurve com dois floats)
         var vel = ps.velocityOverLifetime;
         vel.enabled = true;
         vel.space   = ParticleSystemSimulationSpace.World;
@@ -134,7 +128,8 @@ public class MainMenuBackground : MonoBehaviour
 
         var size = ps.sizeOverLifetime;
         size.enabled = true;
-        size.size    = new ParticleSystem.MinMaxCurve(1f, AnimationCurve.Linear(0f, 1f, 1f, 0.6f));
+        size.size    = new ParticleSystem.MinMaxCurve(1f,
+                           AnimationCurve.Linear(0f, 1f, 1f, 0.6f));
 
         var rot = ps.rotationOverLifetime;
         rot.enabled = true;
@@ -142,22 +137,35 @@ public class MainMenuBackground : MonoBehaviour
                           -15f * Mathf.Deg2Rad,
                            15f * Mathf.Deg2Rad);
 
+        // ── Renderer ──────────────────────────────────────────────
         var rend = go.GetComponent<ParticleSystemRenderer>();
         rend.renderMode   = ParticleSystemRenderMode.Billboard;
         rend.sortingOrder = -5;
 
-// URP: usa Particles/Standard Unlit em vez de Sprites/Default
-        Material mat = new Material(Shader.Find("Universal Render Pipeline/Particles/Unlit"));
-        if (mat.shader.name == "Hidden/InternalErrorShader")
+        // Opção 1: material arrastado no Inspector (recomendado para URP)
+        if (noteParticleMaterial != null)
         {
-            // fallback se o shader não encontrar
-            mat = new Material(Shader.Find("Sprites/Default"));
+            rend.material = noteParticleMaterial;
+            if (musicNoteSprite != null)
+                rend.material.mainTexture = musicNoteSprite.texture;
         }
+        else
+        {
+            // Opção 2: cria material via código como fallback
+            Shader shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+            if (shader == null)
+                shader = Shader.Find("Sprites/Default");
 
-        if (musicNoteSprite != null)
-            mat.mainTexture = musicNoteSprite.texture;
+            Material mat = new Material(shader);
 
-        rend.material = mat;
+            if (musicNoteSprite != null)
+                mat.mainTexture = musicNoteSprite.texture;
+
+            rend.material = mat;
+
+            Debug.LogWarning("[MainMenuBackground] Crie um Material URP e arraste no campo " +
+                             "'Note Particle Material' para melhor resultado.");
+        }
 
         ps.Play();
     }
