@@ -383,7 +383,7 @@ MonoBehaviour:
   musicNoteSprite: {fileID: 8853405262465127315, guid: dbd466d6a3f57bd4eb3bbe20d6912153, type: 3}
   noteParticleMaterial: {fileID: 2100000, guid: 5f26f434b390f794a9b3ca317b07fd05, type: 2}
   emissionRate: 5
-  spawnWidth: 10
+  spawnWidth: 15
   noteAlpha: 0.35
   discSprite: {fileID: -1719367952621414531, guid: 15ffa19fb9075774387923b7149b9dc0, type: 3}
   discRotateSpeed: 20
