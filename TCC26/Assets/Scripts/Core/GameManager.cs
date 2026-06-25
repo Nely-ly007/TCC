@@ -10,28 +10,29 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    // ── PRÓXIMA CENA (usado pela LoadingScene) ────────────────────
+    public string NextScene { get; set; } = "MainMenu";
+
     // ── MOEDA ────────────────────────────────────────────────────
     [Header("Vinis (Moeda)")]
     [SerializeField] private int startingVinyls = 0;
     private int currentVinyls;
 
     // ── FRAGMENTOS DO DISCO ───────────────────────────────────────
-    private bool[] discFragments = new bool[4]; // false = não coletado
+    private bool[] discFragments = new bool[4];
     public int FragmentsCollected => System.Array.FindAll(discFragments, f => f).Length;
 
-    // ── UPGRADES (GDD) ───────────────────────────────────────────
-    // Amplificador: +2 dano (25 vinis) | Salto Harmônico: +10% pulo (30) | Vitalidade: +20 HP (40)
-    public bool HasDamageUpgrade { get; private set; }
-    public bool HasJumpUpgrade { get; private set; }
+    // ── UPGRADES ─────────────────────────────────────────────────
+    public bool HasDamageUpgrade   { get; private set; }
+    public bool HasJumpUpgrade     { get; private set; }
     public bool HasVitalityUpgrade { get; private set; }
 
-    // Custo dos upgrades
-    public const int DAMAGE_UPGRADE_COST = 25;
-    public const int JUMP_UPGRADE_COST = 30;
+    public const int DAMAGE_UPGRADE_COST   = 25;
+    public const int JUMP_UPGRADE_COST     = 30;
     public const int VITALITY_UPGRADE_COST = 40;
 
     // ── ESTADO DE FASES ──────────────────────────────────────────
-    private bool[] phasesUnlocked = new bool[5]; // 0=Hub, 1-4=fases
+    private bool[] phasesUnlocked = new bool[5];
 
     // ── EVENTS ───────────────────────────────────────────────────
     public System.Action<int> OnVinylCountChanged;
@@ -44,9 +45,9 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        currentVinyls = startingVinyls;
-        phasesUnlocked[0] = true; // Hub sempre desbloqueado
-        phasesUnlocked[1] = true; // Fase 1 desbloqueada no início
+        currentVinyls      = startingVinyls;
+        phasesUnlocked[0]  = true;
+        phasesUnlocked[1]  = true;
     }
 
     // ── VINIS ────────────────────────────────────────────────────
@@ -70,16 +71,14 @@ public class GameManager : MonoBehaviour
     public void CollectFragment(int phaseIndex)
     {
         if (phaseIndex < 0 || phaseIndex >= discFragments.Length) return;
-        if (discFragments[phaseIndex]) return; // já coletado
+        if (discFragments[phaseIndex]) return;
 
         discFragments[phaseIndex] = true;
         OnFragmentCollected?.Invoke(FragmentsCollected);
 
-        // Desbloqueia próxima fase
         if (phaseIndex + 1 < phasesUnlocked.Length)
             phasesUnlocked[phaseIndex + 1] = true;
 
-        // Verifica vitória
         if (FragmentsCollected >= 4)
             OnGameComplete?.Invoke();
     }
@@ -91,7 +90,7 @@ public class GameManager : MonoBehaviour
     {
         if (HasDamageUpgrade || !SpendVinyls(DAMAGE_UPGRADE_COST)) return false;
         HasDamageUpgrade = true;
-        PlayerController.Instance?.ApplyDamageUpgrade(2); // GDD: +2 dano
+        PlayerController.Instance?.ApplyDamageUpgrade(2);
         return true;
     }
 
@@ -99,7 +98,7 @@ public class GameManager : MonoBehaviour
     {
         if (HasJumpUpgrade || !SpendVinyls(JUMP_UPGRADE_COST)) return false;
         HasJumpUpgrade = true;
-        PlayerController.Instance?.ApplyJumpUpgrade(0.1f); // GDD: +10%
+        PlayerController.Instance?.ApplyJumpUpgrade(0.1f);
         return true;
     }
 
@@ -107,30 +106,42 @@ public class GameManager : MonoBehaviour
     {
         if (HasVitalityUpgrade || !SpendVinyls(VITALITY_UPGRADE_COST)) return false;
         HasVitalityUpgrade = true;
-        PlayerController.Instance?.ApplyVitalityUpgrade(20); // GDD: +20 HP
+        PlayerController.Instance?.ApplyVitalityUpgrade(20);
         return true;
     }
 
-    // ── CENAS ────────────────────────────────────────────────────
-    public void LoadHub() => SceneManager.LoadScene("Hub");
+    // ── CENAS (agora passam pela LoadingScene) ────────────────────
+    public void LoadHub()
+    {
+        NextScene = "Hub";
+        SceneManager.LoadScene("LoadingScene");
+    }
+
     public void LoadPhase(int phaseNumber)
     {
         if (!phasesUnlocked[phaseNumber]) return;
-        SceneManager.LoadScene($"Phase{phaseNumber}");
+        NextScene = $"Fase {phaseNumber}";
+        SceneManager.LoadScene("LoadingScene");
+    }
+
+    public void LoadMainMenu()
+    {
+        NextScene = "MainMenu";
+        SceneManager.LoadScene("LoadingScene");
     }
 
     public bool IsPhaseUnlocked(int phaseIndex) =>
         phaseIndex >= 0 && phaseIndex < phasesUnlocked.Length && phasesUnlocked[phaseIndex];
 
-    // ── SAVE/LOAD (PlayerPrefs básico) ────────────────────────────
+    // ── SAVE/LOAD ─────────────────────────────────────────────────
     public void SaveGame()
     {
         PlayerPrefs.SetInt("Vinyls", currentVinyls);
         for (int i = 0; i < discFragments.Length; i++)
             PlayerPrefs.SetInt($"Fragment{i}", discFragments[i] ? 1 : 0);
-        PlayerPrefs.SetInt("UpgDamage", HasDamageUpgrade ? 1 : 0);
-        PlayerPrefs.SetInt("UpgJump", HasJumpUpgrade ? 1 : 0);
-        PlayerPrefs.SetInt("UpgVitality", HasVitalityUpgrade ? 1 : 0);
+        PlayerPrefs.SetInt("UpgDamage",    HasDamageUpgrade   ? 1 : 0);
+        PlayerPrefs.SetInt("UpgJump",      HasJumpUpgrade     ? 1 : 0);
+        PlayerPrefs.SetInt("UpgVitality",  HasVitalityUpgrade ? 1 : 0);
         PlayerPrefs.Save();
     }
 
@@ -139,13 +150,12 @@ public class GameManager : MonoBehaviour
         currentVinyls = PlayerPrefs.GetInt("Vinyls", 0);
         for (int i = 0; i < discFragments.Length; i++)
             discFragments[i] = PlayerPrefs.GetInt($"Fragment{i}", 0) == 1;
-        HasDamageUpgrade = PlayerPrefs.GetInt("UpgDamage", 0) == 1;
-        HasJumpUpgrade = PlayerPrefs.GetInt("UpgJump", 0) == 1;
+        HasDamageUpgrade   = PlayerPrefs.GetInt("UpgDamage",   0) == 1;
+        HasJumpUpgrade     = PlayerPrefs.GetInt("UpgJump",     0) == 1;
         HasVitalityUpgrade = PlayerPrefs.GetInt("UpgVitality", 0) == 1;
 
-        // Reaplica upgrades ao player
-        if (HasDamageUpgrade) PlayerController.Instance?.ApplyDamageUpgrade(2);
-        if (HasJumpUpgrade) PlayerController.Instance?.ApplyJumpUpgrade(0.1f);
+        if (HasDamageUpgrade)   PlayerController.Instance?.ApplyDamageUpgrade(2);
+        if (HasJumpUpgrade)     PlayerController.Instance?.ApplyJumpUpgrade(0.1f);
         if (HasVitalityUpgrade) PlayerController.Instance?.ApplyVitalityUpgrade(20);
 
         OnVinylCountChanged?.Invoke(currentVinyls);
