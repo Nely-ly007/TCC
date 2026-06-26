@@ -15,6 +15,14 @@ public class SceneController : MonoBehaviour
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        // Garante que sempre existe um GameManager, mesmo iniciando de outra cena no Editor
+#if UNITY_EDITOR
+        if (GameManager.Instance == null)
+        {
+            GameObject gm = new GameObject("GameManager");
+            gm.AddComponent<GameManager>();
+        }
+#endif
     }
 
     // ── API PÚBLICA ───────────────────────────────────────────────
