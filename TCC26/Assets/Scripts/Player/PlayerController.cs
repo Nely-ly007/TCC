@@ -1,93 +1,80 @@
 using UnityEngine;
 using System.Collections;
 
-/// <summary>
-/// POP ADVENTURE - PlayerController
-/// Controla Enzo: movimento, pulo e ataque musical.
-/// Parâmetros exatos do GDD implementados.
-/// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Animator))]
 public class PlayerController : MonoBehaviour
 {
     public static PlayerController Instance { get; private set; }
 
-    // ── STATS (GDD) ──────────────────────────────────────────────
     [Header("Movimento")]
-    [SerializeField] private float moveSpeed = 5f;          // GDD: 5 unidades/s
-    [SerializeField] private float jumpForce = 12f;
-    [SerializeField] private float jumpHeight = 3f;         // GDD: 3 unidades
-    [SerializeField] private float riseTime = 0.4f;         // GDD: 0.4s
-    [SerializeField] private float fallTime = 0.5f;         // GDD: 0.5s
+    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float jumpHeight = 3f;
+    [SerializeField] private float riseTime   = 0.4f;
+    [SerializeField] private float fallTime   = 0.5f;
 
     [Header("Combate")]
-    [SerializeField] private float attackCooldown = 0.4f;   // GDD: 0.4s
-    [SerializeField] private float hitboxDuration = 0.2f;   // GDD: 0.2s
-    [SerializeField] private int attackDamage = 10;         // GDD: 10 dano base
-    [SerializeField] private float attackRange = 1.5f;
+    [SerializeField] private float attackCooldown = 0.4f;
+    [SerializeField] private int   attackDamage   = 10;
+    [SerializeField] private float attackRange    = 1.5f;
     [SerializeField] private LayerMask enemyLayer;
     [SerializeField] private Transform attackPoint;
+    [SerializeField] private GameObject attackProjectilePrefab;
 
     [Header("Vida")]
-    [SerializeField] private int maxHP = 100;               // GDD: 100 HP
+    [SerializeField] private int maxHP = 100;
     private int currentHP;
-    private int bonusMaxHP = 0;                             // upgrades
-    private int bonusDamage = 0;
+    private int bonusMaxHP          = 0;
+    private int bonusDamage         = 0;
     private float bonusJumpMultiplier = 1f;
 
     [Header("Efeitos")]
-    [SerializeField] private GameObject attackProjectilePrefab;
-    [SerializeField] private GameObject damageFlashEffect;
     [SerializeField] private AudioClip attackSFX;
     [SerializeField] private AudioClip damageSFX;
     [SerializeField] private AudioClip jumpSFX;
     [SerializeField] private AudioClip deathSFX;
-
-    // ── COMPONENTES ───────────────────────────────────────────────
-    private Rigidbody2D rb;
-    private Animator anim;
-    private AudioSource audioSource;
-    private SpriteRenderer spriteRenderer;
-
-    // ── ESTADO ───────────────────────────────────────────────────
-    private bool isGrounded;
-    private bool isAttacking;
-    private bool isDead;
-    private bool isInvincible;
-    private float lastAttackTime = -999f;
-    private float horizontalInput;
-    private Vector3 checkpointPosition;
-
-    // ── EXTRA LIFE ───────────────────────────────────────────────
-    private bool hasMicrophoneRevive = false;
-
-    // ── EVENTS ───────────────────────────────────────────────────
-    public System.Action<int, int> OnHealthChanged;   // (current, max)
-    public System.Action OnPlayerDied;
-    public System.Action OnPlayerRevived;
 
     [Header("Ground Check")]
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckRadius = 0.1f;
     [SerializeField] private LayerMask groundLayer;
 
+    // Componentes
+    private Rigidbody2D  rb;
+    private Animator     anim;
+    private AudioSource  audioSource;
+    private SpriteRenderer[] bodyParts;
+
+    // Estado
+    private bool  isGrounded;
+    private bool  isAttacking;
+    private bool  isDead;
+    private bool  isInvincible;
+    private float lastAttackTime = -999f;
+    private float horizontalInput;
+    private Vector3 checkpointPosition;
+    private bool hasMicrophoneRevive = false;
+
+    public System.Action<int, int> OnHealthChanged;
+    public System.Action OnPlayerDied;
+    public System.Action OnPlayerRevived;
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
 
-        rb = GetComponent<Rigidbody2D>();
-        anim = GetComponent<Animator>();
+        rb          = GetComponent<Rigidbody2D>();
+        anim        = GetComponent<Animator>();
         audioSource = GetComponent<AudioSource>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        bodyParts   = GetComponentsInChildren<SpriteRenderer>();
 
-        // Ajusta gravidade para corresponder aos tempos de subida/queda do GDD
         ApplyGravityScaleFromJumpParams();
     }
 
     void Start()
     {
-        currentHP = maxHP + bonusMaxHP;
+        currentHP          = maxHP + bonusMaxHP;
         checkpointPosition = transform.position;
         OnHealthChanged?.Invoke(currentHP, TotalMaxHP);
     }
@@ -95,7 +82,6 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         if (isDead) return;
-
         HandleMovement();
         HandleJump();
         HandleAttack();
@@ -105,34 +91,43 @@ public class PlayerController : MonoBehaviour
     // ── MOVIMENTO ────────────────────────────────────────────────
     private void HandleMovement()
     {
-        horizontalInput = Input.GetAxisRaw("Horizontal");
+        // Não bloqueia movimento durante ataque — pode atacar parado ou andando
+        horizontalInput   = Input.GetAxisRaw("Horizontal");
         rb.linearVelocity = new Vector2(horizontalInput * moveSpeed, rb.linearVelocity.y);
 
-        // Vira o sprite na direção correta
         if (horizontalInput != 0)
             transform.localScale = new Vector3(Mathf.Sign(horizontalInput), 1, 1);
     }
 
+    // ── PULO ─────────────────────────────────────────────────────
     private void HandleJump()
     {
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+        isGrounded = Physics2D.OverlapCircle(
+            groundCheck.position, groundCheckRadius, groundLayer);
 
-        if (Input.GetButtonDown("Jump") && isGrounded)
+        bool jumpPressed = Input.GetKeyDown(KeyCode.Space)   ||
+                           Input.GetKeyDown(KeyCode.W)       ||
+                           Input.GetKeyDown(KeyCode.UpArrow);
+
+        if (jumpPressed && isGrounded)
         {
-            // Força calculada para atingir a altura desejada em riseTime
             float gravity = Physics2D.gravity.y * rb.gravityScale;
-            float calculatedJumpForce = Mathf.Sqrt(2f * Mathf.Abs(gravity) * (jumpHeight * bonusJumpMultiplier));
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, calculatedJumpForce);
+            float force   = Mathf.Sqrt(2f * Mathf.Abs(gravity) *
+                            (jumpHeight * bonusJumpMultiplier));
 
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, force);
             PlaySFX(jumpSFX);
             anim.SetTrigger("Jump");
         }
 
-        // Gravidade assimétrica (subida mais suave, queda mais rápida)
+        // Gravidade assimétrica
         if (rb.linearVelocity.y < 0)
             rb.gravityScale = GetFallGravityScale();
-        else if (rb.linearVelocity.y > 0 && !Input.GetButton("Jump"))
-            rb.gravityScale = GetRiseGravityScale() * 1.5f; // pulo curto ao soltar
+        else if (rb.linearVelocity.y > 0 &&
+                 !Input.GetKey(KeyCode.Space) &&
+                 !Input.GetKey(KeyCode.W)     &&
+                 !Input.GetKey(KeyCode.UpArrow))
+            rb.gravityScale = GetRiseGravityScale() * 1.5f;
         else
             rb.gravityScale = GetRiseGravityScale();
     }
@@ -140,7 +135,14 @@ public class PlayerController : MonoBehaviour
     // ── ATAQUE ───────────────────────────────────────────────────
     private void HandleAttack()
     {
-        if (Input.GetButtonDown("Fire1") && Time.time >= lastAttackTime + attackCooldown)
+        bool attackPressed = Input.GetKeyDown(KeyCode.Z)        ||
+                             Input.GetMouseButtonDown(0)         ||
+                             Input.GetKeyDown(KeyCode.JoystickButton2);
+
+        // Permite atacar parado OU andando OU no ar
+        // Só bloqueia se já estiver atacando ou morto
+        if (attackPressed && !isAttacking &&
+            Time.time >= lastAttackTime + attackCooldown)
         {
             StartCoroutine(PerformAttack());
         }
@@ -148,65 +150,69 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator PerformAttack()
     {
-        isAttacking = true;
+        isAttacking    = true;
         lastAttackTime = Time.time;
 
         anim.SetTrigger("Attack");
         PlaySFX(attackSFX);
 
-        // Lança projétil OU verifica hitbox
-        if (attackProjectilePrefab != null)
-        {
-            SpawnProjectile();
-        }
-        else
-        {
-            // Hitbox direto por hitboxDuration
-            yield return new WaitForSeconds(0.05f); // pequeno delay para animação
-            PerformHitbox();
-        }
-
-        yield return new WaitForSeconds(hitboxDuration);
+        // Projétil instanciado pelo Animation Event no frame 5
+        yield return new WaitForSeconds(attackCooldown);
         isAttacking = false;
     }
 
-    private void SpawnProjectile()
+    /// <summary>
+    /// Chamado pelo Animation Event no frame 5 do clipe Enzo_Attack.
+    /// DEVE ser public.
+    /// </summary>
+    public void SpawnProjectileEvent()
     {
         Vector2 direction = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
-        GameObject proj = Instantiate(attackProjectilePrefab,
-            attackPoint.position, Quaternion.identity);
-        MusicProjectile projectile = proj.GetComponent<MusicProjectile>();
-        if (projectile != null)
-            projectile.Init(direction, attackDamage + bonusDamage);
+
+        if (attackProjectilePrefab == null)
+        {
+            Debug.LogWarning("[PlayerController] Attack Projectile Prefab não atribuído!");
+            return;
+        }
+
+        if (attackPoint == null)
+        {
+            Debug.LogWarning("[PlayerController] Attack Point não atribuído!");
+            return;
+        }
+
+        GameObject proj = Instantiate(
+            attackProjectilePrefab,
+            attackPoint.position,
+            Quaternion.identity);
+
+        MusicProjectile mp = proj.GetComponent<MusicProjectile>();
+        if (mp != null)
+            mp.Init(direction, attackDamage + bonusDamage);
+        else
+            Debug.LogWarning("[PlayerController] Prefab do projétil não tem MusicProjectile.cs!");
     }
 
     private void PerformHitbox()
     {
-        Vector2 direction = transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+        if (attackPoint == null) return;
         Collider2D[] hits = Physics2D.OverlapCircleAll(
             attackPoint.position, attackRange, enemyLayer);
 
         foreach (var hit in hits)
-        {
-            IDamageable damageable = hit.GetComponent<IDamageable>();
-            damageable?.TakeDamage(attackDamage + bonusDamage);
-        }
+            hit.GetComponent<IDamageable>()?.TakeDamage(attackDamage + bonusDamage);
     }
 
     // ── DANO & VIDA ──────────────────────────────────────────────
     public void TakeDamage(int amount)
     {
         if (isDead || isInvincible) return;
-
         currentHP = Mathf.Max(0, currentHP - amount);
         OnHealthChanged?.Invoke(currentHP, TotalMaxHP);
-
         PlaySFX(damageSFX);
         CameraShake.Instance?.Shake(0.2f, 0.15f);
         StartCoroutine(DamageFlash());
-
-        if (currentHP <= 0)
-            HandleDeath();
+        if (currentHP <= 0) HandleDeath();
     }
 
     public void Heal(int amount)
@@ -219,14 +225,12 @@ public class PlayerController : MonoBehaviour
     {
         if (hasMicrophoneRevive)
         {
-            // Microfone: revive automaticamente com HP parcial
             hasMicrophoneRevive = false;
-            currentHP = TotalMaxHP / 2;
+            currentHP           = TotalMaxHP / 2;
             OnHealthChanged?.Invoke(currentHP, TotalMaxHP);
             OnPlayerRevived?.Invoke();
             return;
         }
-
         isDead = true;
         PlaySFX(deathSFX);
         anim.SetTrigger("Death");
@@ -238,78 +242,69 @@ public class PlayerController : MonoBehaviour
     {
         yield return new WaitForSeconds(1.5f);
         transform.position = checkpointPosition;
-        currentHP = TotalMaxHP;
-        isDead = false;
-        isInvincible = false;
+        currentHP          = TotalMaxHP;
+        isDead             = false;
+        isInvincible       = false;
         OnHealthChanged?.Invoke(currentHP, TotalMaxHP);
     }
 
-    public void SetCheckpoint(Vector3 position)
-    {
-        checkpointPosition = position;
-    }
+    public void SetCheckpoint(Vector3 pos) => checkpointPosition = pos;
 
-    // ── UPGRADES (Hub) ───────────────────────────────────────────
-    public void ApplyDamageUpgrade(int bonus) { bonusDamage += bonus; }
-    public void ApplyJumpUpgrade(float bonus) { bonusJumpMultiplier += bonus; }
-    public void ApplyVitalityUpgrade(int bonusHP)
+    // ── UPGRADES ─────────────────────────────────────────────────
+    public void ApplyDamageUpgrade(int bonus)   => bonusDamage += bonus;
+    public void ApplyJumpUpgrade(float bonus)   => bonusJumpMultiplier += bonus;
+    public void ApplyVitalityUpgrade(int bonus)
     {
-        bonusMaxHP += bonusHP;
-        currentHP = Mathf.Min(currentHP + bonusHP, TotalMaxHP);
+        bonusMaxHP += bonus;
+        currentHP   = Mathf.Min(currentHP + bonus, TotalMaxHP);
         OnHealthChanged?.Invoke(currentHP, TotalMaxHP);
     }
-
-    // ── POWER-UPS ────────────────────────────────────────────────
-    public void PickupMicrophone() { hasMicrophoneRevive = true; }
-
-    // ── HELPERS ──────────────────────────────────────────────────
+    public void PickupMicrophone() => hasMicrophoneRevive = true;
     public int TotalMaxHP => maxHP + bonusMaxHP;
 
+    // ── DAMAGE FLASH ─────────────────────────────────────────────
     private IEnumerator DamageFlash()
     {
         isInvincible = true;
-        float timer = 0f;
-        float invincibilityDuration = 0.8f;
-
-        while (timer < invincibilityDuration)
+        float timer  = 0f;
+        while (timer < 0.8f)
         {
-            spriteRenderer.enabled = !spriteRenderer.enabled;
+            if (bodyParts != null && bodyParts.Length > 0)
+            {
+                bool show = !bodyParts[0].enabled;
+                foreach (var sr in bodyParts)
+                    if (sr != null) sr.enabled = show;
+            }
             yield return new WaitForSeconds(0.08f);
             timer += 0.08f;
         }
-        spriteRenderer.enabled = true;
+        if (bodyParts != null)
+            foreach (var sr in bodyParts)
+                if (sr != null) sr.enabled = true;
         isInvincible = false;
     }
 
+    // ── ANIMAÇÕES ────────────────────────────────────────────────
     private void UpdateAnimations()
     {
-        anim.SetFloat("Speed", Mathf.Abs(horizontalInput));
-        anim.SetBool("IsGrounded", isGrounded);
+        anim.SetFloat("Speed",            Mathf.Abs(horizontalInput));
+        anim.SetBool("IsGrounded",        isGrounded);
         anim.SetFloat("VerticalVelocity", rb.linearVelocity.y);
     }
 
+    // ── FÍSICA ───────────────────────────────────────────────────
     private void ApplyGravityScaleFromJumpParams()
     {
-        // Deriva a escala de gravidade a partir dos tempos do GDD
-        // g_eff = 2 * h / t_rise^2
-        // gravityScale = g_eff / Physics2D.gravity.y
-        float h = jumpHeight;
-        float g_eff = 2f * h / (riseTime * riseTime);
+        float g_eff     = 2f * jumpHeight / (riseTime * riseTime);
         rb.gravityScale = g_eff / Mathf.Abs(Physics2D.gravity.y);
     }
-
     private float GetRiseGravityScale()
     {
-        float h = jumpHeight;
-        float g_eff = 2f * h / (riseTime * riseTime);
-        return g_eff / Mathf.Abs(Physics2D.gravity.y);
+        return (2f * jumpHeight / (riseTime * riseTime)) / Mathf.Abs(Physics2D.gravity.y);
     }
-
     private float GetFallGravityScale()
     {
-        float h = jumpHeight;
-        float g_eff = 2f * h / (fallTime * fallTime);
-        return g_eff / Mathf.Abs(Physics2D.gravity.y);
+        return (2f * jumpHeight / (fallTime * fallTime)) / Mathf.Abs(Physics2D.gravity.y);
     }
 
     private void PlaySFX(AudioClip clip)
