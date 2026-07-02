@@ -11,13 +11,14 @@ GameObject:
   - component: {fileID: 6333763525252863949}
   - component: {fileID: 5898387743040544648}
   - component: {fileID: 6669954488252723108}
+  - component: {fileID: 7598400145235812688}
   m_Layer: 0
   m_Name: notaAtack_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6333763525252863949
 Transform:
   m_ObjectHideFlags: 0
@@ -27,8 +28,8 @@ Transform:
   m_GameObject: {fileID: 4933821102775095242}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.4108, y: -0.0641, z: 0}
-  m_LocalScale: {x: 0.03481865, y: 0.034682572, z: 0.1868}
+  m_LocalPosition: {x: 0.4461, y: -0.114, z: 0}
+  m_LocalScale: {x: 0.048653595, y: 0.048653595, z: 0.048653595}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -106,5 +107,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MusicProjectile
   speed: 10
   lifetime: 1.5
-  trail: {fileID: 0}
   hitEffect: {fileID: 0}
+--- !u!50 &7598400145235812688
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4933821102775095242}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 1
+  m_Constraints: 0
