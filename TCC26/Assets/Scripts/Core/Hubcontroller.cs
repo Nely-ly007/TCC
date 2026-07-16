@@ -4,13 +4,10 @@ using TMPro;
 using System.Collections;
 
 /// <summary>
-/// POP ADVENTURE - HubController
-/// Gerencia a cena Hub (O Porão):
-///   - Mapa de fases interativo (4 portais + Hub central)
-///   - Toca-discos dourado: animado, abre o mapa ao interagir
-///   - NPC Maestro: dá dicas, reage aos fragmentos coletados
-///   - Feedback visual: fragmentos do disco exibidos no ambiente
-///   - Música ambiente sincronizada com o BPM do hub
+/// POP ADVENTURE - HubController v2
+/// - Toca-discos: apenas proximidade + tecla E abre o mapa (sem disco girando/braço)
+/// - Maestro: "E para falar" e "B para upgrades" ao se aproximar
+/// - Loja integrada ao Maestro
 /// </summary>
 public class HubController : MonoBehaviour
 {
@@ -18,432 +15,486 @@ public class HubController : MonoBehaviour
     [Header("Mapa de Fases")]
     [SerializeField] private GameObject phaseMapPanel;
     [SerializeField] private CanvasGroup phaseMapGroup;
-    [SerializeField] private Button[] phaseButtons;         // 4 botões, um por fase
-    [SerializeField] private GameObject[] phaseLockIcons;   // ícone de cadeado por fase
-    [SerializeField] private Image[] phaseFragmentSlots;    // slot dourado quando coletado
-    [SerializeField] private TextMeshProUGUI[] phaseLabels; // nome de cada fase
+    [SerializeField] private Button[] phaseButtons;
+    [SerializeField] private GameObject[] phaseLockIcons;
+    [SerializeField] private Image[] phaseFragmentSlots;
+    [SerializeField] private TextMeshProUGUI[] phaseLabels;
     [SerializeField] private Button closeMapButton;
 
-    [Header("Descrição da Fase (tooltip)")]
+    [Header("Tooltip da Fase")]
     [SerializeField] private GameObject phaseTooltip;
     [SerializeField] private TextMeshProUGUI tooltipTitle;
     [SerializeField] private TextMeshProUGUI tooltipDesc;
     [SerializeField] private TextMeshProUGUI tooltipBossName;
 
-    // ── TOCA-DISCOS ───────────────────────────────────────────────
+    // ── TOCA-DISCOS (simplificado) ────────────────────────────────
     [Header("Toca-discos")]
-    [SerializeField] private Transform turntableDisc;       // disco que gira
-    [SerializeField] private Transform turntableArm;        // braço do toca-discos
-    [SerializeField] private float discSpinSpeed = 45f;     // graus/segundo
-    [SerializeField] private float armPlayAngle  = -18f;    // ângulo quando tocando
-    [SerializeField] private float armIdleAngle  =   0f;
+    [SerializeField] private Transform turntableTransform;  // posição do objeto na cena
+    [SerializeField] private float turntableInteractRadius = 1.8f;
+    [SerializeField] private GameObject turntablePrompt;    // "E — Abrir Mapa"
+    [SerializeField] private AudioClip turntableOpenSFX;
 
-    [Header("Interação com Toca-discos")]
-    [SerializeField] private GameObject interactPrompt;     // "E - Ver Mapa"
-    [SerializeField] private float interactRadius = 1.5f;
-    [SerializeField] private AudioClip turntableStartSFX;
-    [SerializeField] private AudioClip hubMusic;
-    [SerializeField] private float hubBPM = 95f;
+    // ── MAESTRO ───────────────────────────────────────────────────
+    [Header("Maestro")]
+    [SerializeField] private Transform maestroTransform;
+    [SerializeField] private float maestroInteractRadius = 2f;
+    [SerializeField] private GameObject maestroPrompt;      // painel com as duas opções
+    [SerializeField] private TextMeshProUGUI maestroPromptText; // "E — Falar  |  B — Upgrades"
 
-    // ── NPC MAESTRO ───────────────────────────────────────────────
-    [Header("NPC Maestro")]
-    [SerializeField] private GameObject maestroObject;
-    [SerializeField] private GameObject speechBubble;
-    [SerializeField] private TextMeshProUGUI speechText;
-    [SerializeField] private float speechDuration = 4f;
-    [SerializeField] private float interactRadiusMaestro = 1.8f;
-
-    // ── FRAGMENTOS DO DISCO NO AMBIENTE ───────────────────────────
-    [Header("Display de Fragmentos (ambiente)")]
-    [SerializeField] private GameObject[] fragmentDisplayObjects; // 4 objetos na cena
-    [SerializeField] private Color fragmentInactiveColor = new Color(0.3f, 0.3f, 0.3f);
-    [SerializeField] private Color fragmentActiveColor   = new Color(1f, 0.85f, 0f);
+    // ── DIÁLOGO DO MAESTRO ────────────────────────────────────────
+    [Header("Diálogo")]
+    [SerializeField] private GameObject dialoguePanel;
+    [SerializeField] private CanvasGroup dialogueGroup;
+    [SerializeField] private TextMeshProUGUI dialogueNameText;
+    [SerializeField] private TextMeshProUGUI dialogueBodyText;
+    [SerializeField] private Image dialoguePortrait;
+    [SerializeField] private Sprite portraitNormal;
+    [SerializeField] private Sprite portraitHappy;
+    [SerializeField] private GameObject continueIndicator;
+    [SerializeField] private float typewriterSpeed = 0.04f;
 
     // ── LOJA ──────────────────────────────────────────────────────
     [Header("Loja de Upgrades")]
-    [SerializeField] private GameObject shopTriggerZone;
     [SerializeField] private GameObject shopPanel;
-    [SerializeField] private HubUpgradeShop upgradeShop;
+    [SerializeField] private CanvasGroup shopGroup;
+    [SerializeField] private Button btnAmplifier;
+    [SerializeField] private Button btnJump;
+    [SerializeField] private Button btnVitality;
+    [SerializeField] private TextMeshProUGUI vinylBalanceText;
+    [SerializeField] private Button btnCloseShop;
 
-    // ── HUD DO HUB ────────────────────────────────────────────────
+    // ── FRAGMENTOS NO AMBIENTE ────────────────────────────────────
+    [Header("Fragmentos no Ambiente")]
+    [SerializeField] private GameObject[] fragmentDisplayObjects;
+    [SerializeField] private Color fragmentInactiveColor = new Color(0.3f, 0.3f, 0.3f);
+    [SerializeField] private Color fragmentActiveColor   = new Color(1f, 0.85f, 0f);
+
+    // ── HUD ───────────────────────────────────────────────────────
     [Header("HUD")]
     [SerializeField] private TextMeshProUGUI vinylCountText;
     [SerializeField] private TextMeshProUGUI fragmentCountText;
 
-    // ── ESTADO ────────────────────────────────────────────────────
-    private bool mapOpen        = false;
-    private bool isNearTurntable = false;
-    private bool isNearMaestro  = false;
-    private bool turntablePlaying = true;
-    private int  hoveredPhase   = -1;
-    private Transform player;
-    private AudioSource audioSource;
-    private Coroutine speechCoroutine;
+    // ── ÁUDIO ─────────────────────────────────────────────────────
+    [Header("Áudio")]
+    [SerializeField] private AudioClip hubMusic;
+    [SerializeField] private float hubBPM = 95f;
 
-    // ── DADOS DAS FASES ───────────────────────────────────────────
+    // ── ESTADO ───────────────────────────────────────────────────
+    private bool mapOpen          = false;
+    private bool shopOpen         = false;
+    private bool dialogueOpen     = false;
+    private bool isNearTurntable  = false;
+    private bool isNearMaestro    = false;
+    private int  currentDialogueLine = 0;
+    private bool isTyping         = false;
+    private Coroutine typewriterCoroutine;
+    private AudioSource audioSource;
+    private Transform player;
+
+    // Dados das fases
     private static readonly string[] PhaseNames = {
-        "Disco Fever", "The Hive", "Graveyard Groove", "Mayhem Theatre"
-    };
+        "Disco Fever", "The Hive", "Graveyard Groove", "Mayhem Theatre" };
     private static readonly string[] PhaseDescs = {
-        "Uma boate abandonada pulsa com vida. Donna e suas dançarinas guardam o primeiro fragmento.",
-        "Uma colmeia gigante zumbe no ritmo. A Rainha das Abelhas protege o segundo fragmento.",
-        "Um cemitério que dança toda noite. Zombie Jack não deixa os mortos descansarem.",
-        "O palco é uma armadilha. Lady in Red atua para um público que nunca vai embora."
-    };
+        "Luzes, cores quentes e ritmo disco. Boss: Donna.",
+        "Colmeia urbana, dourado e preto. Boss: Queen Bee.",
+        "Cemitério estilizado, névoa e ritmo. Boss: Zombie Jack.",
+        "Teatro gótico e dramático. Boss: Lady in Red." };
     private static readonly string[] BossNames = {
-        "Boss: Donna", "Boss: Queen Bee", "Boss: Zombie Jack", "Boss: Lady in Red"
+        "Boss: Donna", "Boss: Queen Bee", "Boss: Zombie Jack", "Boss: Lady in Red" };
+
+    // Falas do Maestro por fragmento
+    private static readonly string[][] MaestroLines = {
+        new[]{ "Bem-vindo ao Porão! Use o toca-discos para escolher uma fase.",
+               "O Disco Dourado foi partido em 4 fragmentos. Boa sorte!" },
+        new[]{ "Um fragmento coletado! Você está no caminho certo." },
+        new[]{ "Metade do caminho! Os próximos bosses são mais difíceis.",
+               "Não esqueça de gastar seus vinis na loja!" },
+        new[]{ "Quase lá! Só falta um fragmento." },
+        new[]{ "Você fez isso! O Disco Dourado está restaurado!" }
     };
 
     // ─────────────────────────────────────────────────────────────
     void Awake()
     {
         audioSource = GetComponent<AudioSource>();
-        if (phaseTooltip != null) phaseTooltip.SetActive(false);
-        if (phaseMapPanel != null) phaseMapPanel.SetActive(false);
-        if (speechBubble  != null) speechBubble.SetActive(false);
-        if (interactPrompt != null) interactPrompt.SetActive(false);
+        if (phaseMapPanel  != null) phaseMapPanel.SetActive(false);
+        if (shopPanel      != null) shopPanel.SetActive(false);
+        if (dialoguePanel  != null) dialoguePanel.SetActive(false);
+        if (turntablePrompt!= null) turntablePrompt.SetActive(false);
+        if (maestroPrompt  != null) maestroPrompt.SetActive(false);
+        if (continueIndicator != null) continueIndicator.SetActive(false);
     }
 
     void Start()
     {
         player = PlayerController.Instance?.transform;
 
-        // Inicia música do Hub
         if (hubMusic != null)
             RhythmManager.Instance?.StartMusic(hubMusic, hubBPM);
 
-        // Braço do toca-discos na posição de play
-        if (turntableArm != null)
-            turntableArm.localRotation = Quaternion.Euler(0, 0, armPlayAngle);
-
-        // Configura botões do mapa
         SetupPhaseButtons();
-
-        // Atualiza estado visual com os dados salvos
+        SetupShopButtons();
         RefreshFragmentDisplay();
         RefreshHUD();
 
-        // Subscreve eventos
-        GameManager.Instance.OnVinylCountChanged  += _ => RefreshHUD();
-        GameManager.Instance.OnFragmentCollected  += _ => RefreshFragmentDisplay();
-        closeMapButton?.onClick.AddListener(ClosePhaseMap);
+        if (closeMapButton != null) closeMapButton.onClick.AddListener(ClosePhaseMap);
+        if (btnCloseShop   != null) btnCloseShop.onClick.AddListener(CloseShop);
 
-        // Fecha mapa com ESC
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnVinylCountChanged += _ => RefreshHUD();
+            GameManager.Instance.OnFragmentCollected += _ => RefreshFragmentDisplay();
+        }
+
         SceneController.Instance?.FadeIn(0.5f);
-
-        // Fala de boas-vindas do Maestro
-        string welcome = GameManager.Instance.FragmentsCollected == 0
-            ? "Bem-vindo ao Porão! Use o toca-discos para escolher uma fase."
-            : $"De volta! Você tem {GameManager.Instance.FragmentsCollected}/4 fragmentos.";
-        StartCoroutine(ShowSpeechDelayed(welcome, 1.5f));
     }
 
     void Update()
     {
         if (player == null) return;
-
         HandleTurntableProximity();
         HandleMaestroProximity();
-        HandleTurntableRotation();
-
-        if (Input.GetKeyDown(KeyCode.Escape) && mapOpen)
-            ClosePhaseMap();
+        HandleInputs();
     }
 
     // ── TOCA-DISCOS ───────────────────────────────────────────────
-
-    private void HandleTurntableRotation()
-    {
-        if (turntableDisc == null) return;
-        if (turntablePlaying)
-            turntableDisc.Rotate(Vector3.forward, -discSpinSpeed * Time.deltaTime);
-    }
-
     private void HandleTurntableProximity()
     {
-        if (turntableDisc == null) return;
-        float dist = Vector2.Distance(player.position, turntableDisc.position);
-        bool near  = dist < interactRadius;
+        if (turntableTransform == null) return;
+        float dist = Vector2.Distance(player.position, turntableTransform.position);
+        bool near  = dist <= turntableInteractRadius;
 
         if (near != isNearTurntable)
         {
             isNearTurntable = near;
-            interactPrompt?.SetActive(near);
+            // Só mostra o prompt do toca-discos se não estiver perto do Maestro
+            if (turntablePrompt != null)
+                turntablePrompt.SetActive(near && !isNearMaestro);
         }
-
-        if (near && Input.GetKeyDown(KeyCode.E))
-            TogglePhaseMap();
     }
 
-    private void TogglePhaseMap()
+    // ── MAESTRO ───────────────────────────────────────────────────
+    private void HandleMaestroProximity()
     {
-        if (mapOpen) ClosePhaseMap();
-        else         OpenPhaseMap();
+        if (maestroTransform == null) return;
+        float dist = Vector2.Distance(player.position, maestroTransform.position);
+        bool near  = dist <= maestroInteractRadius;
+
+        if (near != isNearMaestro)
+        {
+            isNearMaestro = near;
+
+            if (maestroPrompt != null)
+                maestroPrompt.SetActive(near);
+
+            // Atualiza o texto do prompt com as duas opções
+            if (maestroPromptText != null && near)
+                maestroPromptText.text = "E — Falar     B — Upgrades";
+
+            // Esconde prompt do toca-discos se Maestro está perto
+            if (turntablePrompt != null && near)
+                turntablePrompt.SetActive(false);
+            else if (turntablePrompt != null && !near && isNearTurntable)
+                turntablePrompt.SetActive(true);
+        }
+    }
+
+    // ── INPUTS ───────────────────────────────────────────────────
+    private void HandleInputs()
+    {
+        // ESC fecha tudo
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (mapOpen)      ClosePhaseMap();
+            if (shopOpen)     CloseShop();
+            if (dialogueOpen) CloseDialogue();
+            return;
+        }
+
+        // Toca-discos: E abre o mapa
+        if (Input.GetKeyDown(KeyCode.E) && isNearTurntable && !mapOpen
+            && !shopOpen && !dialogueOpen)
+        {
+            OpenPhaseMap();
+            return;
+        }
+
+        // Maestro: E fala, B abre loja
+        if (isNearMaestro)
+        {
+            if (Input.GetKeyDown(KeyCode.E) && !shopOpen)
+            {
+                if (dialogueOpen) AdvanceDialogue();
+                else              OpenDialogue();
+                return;
+            }
+
+            if (Input.GetKeyDown(KeyCode.B) && !dialogueOpen)
+            {
+                if (shopOpen) CloseShop();
+                else          OpenShop();
+                return;
+            }
+        }
     }
 
     // ── MAPA DE FASES ─────────────────────────────────────────────
-
     private void OpenPhaseMap()
     {
         if (mapOpen) return;
         mapOpen = true;
+        if (turntableOpenSFX != null) audioSource?.PlayOneShot(turntableOpenSFX);
         phaseMapPanel?.SetActive(true);
         StartCoroutine(FadeGroup(phaseMapGroup, 0f, 1f, 0.3f));
-
-        // Para o toca-discos
-        if (turntableArm != null)
-            StartCoroutine(RotateTo(turntableArm, armIdleAngle, 0.4f));
-
-        if (turntableStartSFX != null)
-            audioSource?.PlayOneShot(turntableStartSFX);
     }
 
     private void ClosePhaseMap()
     {
         if (!mapOpen) return;
         mapOpen = false;
-        StartCoroutine(CloseMapCoroutine());
-
-        // Retoma o toca-discos
-        if (turntableArm != null)
-            StartCoroutine(RotateTo(turntableArm, armPlayAngle, 0.4f));
-    }
-
-    private IEnumerator CloseMapCoroutine()
-    {
+        StartCoroutine(ClosePanelCoroutine(phaseMapPanel, phaseMapGroup));
         if (phaseTooltip != null) phaseTooltip.SetActive(false);
-        yield return StartCoroutine(FadeGroup(phaseMapGroup, 1f, 0f, 0.2f));
-        phaseMapPanel?.SetActive(false);
     }
 
     private void SetupPhaseButtons()
     {
+        if (phaseButtons == null) return;
         for (int i = 0; i < phaseButtons.Length; i++)
         {
-            int phaseIndex = i + 1; // fases 1–4
-            bool unlocked  = GameManager.Instance.IsPhaseUnlocked(phaseIndex);
+            if (phaseButtons[i] == null) continue;
+            int phaseIndex = i + 1;
+            bool unlocked  = GameManager.Instance?.IsPhaseUnlocked(phaseIndex) ?? false;
 
-            // Configura texto
             if (i < phaseLabels.Length && phaseLabels[i] != null)
                 phaseLabels[i].text = PhaseNames[i];
 
-            // Cadeado
             if (i < phaseLockIcons.Length && phaseLockIcons[i] != null)
                 phaseLockIcons[i].SetActive(!unlocked);
 
-            // Fragmento coletado
             if (i < phaseFragmentSlots.Length && phaseFragmentSlots[i] != null)
-                phaseFragmentSlots[i].color = GameManager.Instance.HasFragment(i)
+                phaseFragmentSlots[i].color = GameManager.Instance?.HasFragment(i) == true
                     ? fragmentActiveColor : fragmentInactiveColor;
 
-            // Botão
-            if (phaseButtons[i] != null)
-            {
-                phaseButtons[i].interactable = unlocked;
+            phaseButtons[i].interactable = unlocked;
+            int idx = i;
+            phaseButtons[i].onClick.AddListener(() => OnPhaseSelected(idx + 1));
 
-                int capturedIndex = i;
-                phaseButtons[i].onClick.AddListener(() => OnPhaseSelected(capturedIndex + 1));
-
-                // Hover: mostra tooltip
-                var trigger = phaseButtons[i].gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
-                AddHoverEvent(trigger, capturedIndex);
-            }
+            // Hover tooltip
+            var trigger = phaseButtons[i].gameObject.GetComponent<UnityEngine.EventSystems.EventTrigger>()
+                       ?? phaseButtons[i].gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+            AddHoverEvent(trigger, idx);
         }
     }
 
     private void AddHoverEvent(UnityEngine.EventSystems.EventTrigger trigger, int index)
     {
-        var enterEntry = new UnityEngine.EventSystems.EventTrigger.Entry
+        var enter = new UnityEngine.EventSystems.EventTrigger.Entry
             { eventID = UnityEngine.EventSystems.EventTriggerType.PointerEnter };
-        enterEntry.callback.AddListener(_ => ShowPhaseTooltip(index));
-        trigger.triggers.Add(enterEntry);
+        enter.callback.AddListener(_ => ShowTooltip(index));
+        trigger.triggers.Add(enter);
 
-        var exitEntry = new UnityEngine.EventSystems.EventTrigger.Entry
+        var exit = new UnityEngine.EventSystems.EventTrigger.Entry
             { eventID = UnityEngine.EventSystems.EventTriggerType.PointerExit };
-        exitEntry.callback.AddListener(_ => HidePhaseTooltip());
-        trigger.triggers.Add(exitEntry);
+        exit.callback.AddListener(_ => HideTooltip());
+        trigger.triggers.Add(exit);
     }
 
-    private void ShowPhaseTooltip(int index)
+    private void ShowTooltip(int i)
     {
         if (phaseTooltip == null) return;
         phaseTooltip.SetActive(true);
-        if (tooltipTitle    != null) tooltipTitle.text    = PhaseNames[index];
-        if (tooltipDesc     != null) tooltipDesc.text     = PhaseDescs[index];
-        if (tooltipBossName != null) tooltipBossName.text = BossNames[index];
+        if (tooltipTitle    != null) tooltipTitle.text    = PhaseNames[i];
+        if (tooltipDesc     != null) tooltipDesc.text     = PhaseDescs[i];
+        if (tooltipBossName != null) tooltipBossName.text = BossNames[i];
     }
 
-    private void HidePhaseTooltip()
-    {
-        phaseTooltip?.SetActive(false);
-    }
+    private void HideTooltip() => phaseTooltip?.SetActive(false);
 
-    private void OnPhaseSelected(int phaseNumber)
+    private void OnPhaseSelected(int n)
     {
-        if (!GameManager.Instance.IsPhaseUnlocked(phaseNumber)) return;
+        if (GameManager.Instance?.IsPhaseUnlocked(n) != true) return;
         ClosePhaseMap();
-        StartCoroutine(LoadPhaseWithDelay(phaseNumber));
+        StartCoroutine(LoadPhaseDelayed(n));
     }
 
-    private IEnumerator LoadPhaseWithDelay(int phaseNumber)
+    private IEnumerator LoadPhaseDelayed(int n)
     {
         yield return new WaitForSeconds(0.3f);
-        SceneController.Instance?.GoToPhase(phaseNumber);
+        SceneController.Instance?.GoToPhase(n);
     }
 
-    // ── NPC MAESTRO ───────────────────────────────────────────────
-
-    private void HandleMaestroProximity()
+    // ── DIÁLOGO DO MAESTRO ────────────────────────────────────────
+    private void OpenDialogue()
     {
-        if (maestroObject == null) return;
-        float dist = Vector2.Distance(player.position, maestroObject.transform.position);
-        bool near  = dist < interactRadiusMaestro;
+        dialogueOpen     = true;
+        currentDialogueLine = 0;
 
-        if (near != isNearMaestro)
+        int frags = GameManager.Instance?.FragmentsCollected ?? 0;
+        frags = Mathf.Clamp(frags, 0, MaestroLines.Length - 1);
+
+        dialoguePanel?.SetActive(true);
+        StartCoroutine(FadeGroup(dialogueGroup, 0f, 1f, 0.2f));
+        if (dialogueNameText != null) dialogueNameText.text = "Maestro";
+        if (dialoguePortrait != null) dialoguePortrait.sprite = portraitNormal;
+
+        ShowDialogueLine(MaestroLines[frags][0]);
+    }
+
+    private void AdvanceDialogue()
+    {
+        if (isTyping) { SkipTypewriter(); return; }
+
+        int frags = Mathf.Clamp(
+            GameManager.Instance?.FragmentsCollected ?? 0, 0, MaestroLines.Length - 1);
+        string[] lines = MaestroLines[frags];
+        currentDialogueLine++;
+
+        if (currentDialogueLine < lines.Length)
+            ShowDialogueLine(lines[currentDialogueLine]);
+        else
+            CloseDialogue();
+    }
+
+    private void ShowDialogueLine(string text)
+    {
+        if (continueIndicator != null) continueIndicator.SetActive(false);
+        if (typewriterCoroutine != null) StopCoroutine(typewriterCoroutine);
+        typewriterCoroutine = StartCoroutine(Typewriter(text));
+    }
+
+    private IEnumerator Typewriter(string text)
+    {
+        isTyping = true;
+        if (dialogueBodyText != null) dialogueBodyText.text = "";
+        foreach (char c in text)
         {
-            isNearMaestro = near;
-            if (near && Input.GetKeyDown(KeyCode.E))
-                TriggerMaestroDialogue();
+            if (dialogueBodyText != null) dialogueBodyText.text += c;
+            yield return new WaitForSeconds(typewriterSpeed);
         }
+        isTyping = false;
+        if (continueIndicator != null) continueIndicator.SetActive(true);
     }
 
-    private void TriggerMaestroDialogue()
+    private void SkipTypewriter()
     {
-        int fragments  = GameManager.Instance.FragmentsCollected;
-        string[] lines = {
-            "O Disco Dourado foi partido em 4! Cada fase esconde um fragmento.",
-            $"Você já tem {fragments} de 4 fragmentos. Continue assim!",
-            "Gaste seus vinis na loja — os upgrades fazem diferença!",
-            "O toca-discos abre o mapa. Escolha sua próxima fase com sabedoria."
-        };
-        ShowSpeech(lines[fragments < lines.Length ? fragments : lines.Length - 1]);
+        if (typewriterCoroutine != null) StopCoroutine(typewriterCoroutine);
+        int frags = Mathf.Clamp(
+            GameManager.Instance?.FragmentsCollected ?? 0, 0, MaestroLines.Length - 1);
+        if (dialogueBodyText != null)
+            dialogueBodyText.text = MaestroLines[frags][currentDialogueLine];
+        isTyping = false;
+        if (continueIndicator != null) continueIndicator.SetActive(true);
     }
 
-    private IEnumerator ShowSpeechDelayed(string text, float delay)
+    private void CloseDialogue()
     {
-        yield return new WaitForSeconds(delay);
-        ShowSpeech(text);
+        dialogueOpen = false;
+        StartCoroutine(ClosePanelCoroutine(dialoguePanel, dialogueGroup));
     }
 
-    private void ShowSpeech(string text)
+    // ── LOJA ──────────────────────────────────────────────────────
+    private void OpenShop()
     {
-        if (speechCoroutine != null) StopCoroutine(speechCoroutine);
-        speechCoroutine = StartCoroutine(SpeechCoroutine(text));
+        shopOpen = true;
+        shopPanel?.SetActive(true);
+        StartCoroutine(FadeGroup(shopGroup, 0f, 1f, 0.25f));
+        RefreshShopUI();
     }
 
-    private IEnumerator SpeechCoroutine(string text)
+    private void CloseShop()
     {
-        if (speechBubble == null) yield break;
-        if (speechText != null) speechText.text = text;
-        speechBubble.SetActive(true);
-
-        // Fade in
-        CanvasGroup cg = speechBubble.GetComponent<CanvasGroup>();
-        if (cg != null) yield return StartCoroutine(FadeGroup(cg, 0f, 1f, 0.2f));
-
-        yield return new WaitForSeconds(speechDuration);
-
-        // Fade out
-        if (cg != null) yield return StartCoroutine(FadeGroup(cg, 1f, 0f, 0.3f));
-        speechBubble.SetActive(false);
+        shopOpen = false;
+        StartCoroutine(ClosePanelCoroutine(shopPanel, shopGroup));
     }
 
-    // ── DISPLAY DE FRAGMENTOS ─────────────────────────────────────
+    private void SetupShopButtons()
+    {
+        if (btnAmplifier != null)
+            btnAmplifier.onClick.AddListener(() =>
+            { if (GameManager.Instance.BuyDamageUpgrade()) RefreshShopUI(); });
 
+        if (btnJump != null)
+            btnJump.onClick.AddListener(() =>
+            { if (GameManager.Instance.BuyJumpUpgrade()) RefreshShopUI(); });
+
+        if (btnVitality != null)
+            btnVitality.onClick.AddListener(() =>
+            { if (GameManager.Instance.BuyVitalityUpgrade()) RefreshShopUI(); });
+    }
+
+    private void RefreshShopUI()
+    {
+        if (GameManager.Instance == null) return;
+        int v = GameManager.Instance.GetVinyls();
+        if (vinylBalanceText != null) vinylBalanceText.text = $"Vinis: {v}";
+
+        if (btnAmplifier != null)
+            btnAmplifier.interactable = !GameManager.Instance.HasDamageUpgrade
+                                     && v >= GameManager.DAMAGE_UPGRADE_COST;
+        if (btnJump != null)
+            btnJump.interactable      = !GameManager.Instance.HasJumpUpgrade
+                                     && v >= GameManager.JUMP_UPGRADE_COST;
+        if (btnVitality != null)
+            btnVitality.interactable  = !GameManager.Instance.HasVitalityUpgrade
+                                     && v >= GameManager.VITALITY_UPGRADE_COST;
+    }
+
+    // ── FRAGMENTOS & HUD ─────────────────────────────────────────
     private void RefreshFragmentDisplay()
     {
+        if (fragmentDisplayObjects == null) return;
         for (int i = 0; i < fragmentDisplayObjects.Length; i++)
         {
             if (fragmentDisplayObjects[i] == null) continue;
-            bool collected = GameManager.Instance.HasFragment(i);
-            SpriteRenderer sr = fragmentDisplayObjects[i].GetComponent<SpriteRenderer>();
+            var sr = fragmentDisplayObjects[i].GetComponent<SpriteRenderer>();
             if (sr != null)
-                sr.color = collected ? fragmentActiveColor : fragmentInactiveColor;
-
-            // Pequena animação de aparecimento quando coletado
-            if (collected)
-                StartCoroutine(FragmentAppear(fragmentDisplayObjects[i]));
+                sr.color = GameManager.Instance?.HasFragment(i) == true
+                    ? fragmentActiveColor : fragmentInactiveColor;
         }
-
-        // Atualiza também os slots do mapa
+        // Atualiza slots do mapa também
         if (phaseFragmentSlots == null) return;
         for (int i = 0; i < phaseFragmentSlots.Length; i++)
-        {
-            if (phaseFragmentSlots[i] == null) continue;
-            phaseFragmentSlots[i].color = GameManager.Instance.HasFragment(i)
-                ? fragmentActiveColor : fragmentInactiveColor;
-        }
+            if (phaseFragmentSlots[i] != null)
+                phaseFragmentSlots[i].color = GameManager.Instance?.HasFragment(i) == true
+                    ? fragmentActiveColor : fragmentInactiveColor;
     }
-
-    private IEnumerator FragmentAppear(GameObject obj)
-    {
-        float t = 0f;
-        Vector3 orig = obj.transform.localScale;
-        while (t < 0.4f)
-        {
-            t += Time.deltaTime;
-            float s = 1f + Mathf.Sin(t * Mathf.PI / 0.4f) * 0.15f;
-            obj.transform.localScale = orig * s;
-            yield return null;
-        }
-        obj.transform.localScale = orig;
-    }
-
-    // ── HUD ───────────────────────────────────────────────────────
 
     private void RefreshHUD()
     {
         if (vinylCountText    != null)
-            vinylCountText.text = GameManager.Instance.GetVinyls().ToString();
+            vinylCountText.text    = GameManager.Instance?.GetVinyls().ToString() ?? "0";
         if (fragmentCountText != null)
-            fragmentCountText.text =
-                $"{GameManager.Instance.FragmentsCollected}/4";
+            fragmentCountText.text = $"{GameManager.Instance?.FragmentsCollected ?? 0}/4";
     }
 
     // ── UTILITÁRIOS ───────────────────────────────────────────────
-
-    private IEnumerator FadeGroup(CanvasGroup group, float from, float to, float duration)
+    private IEnumerator FadeGroup(CanvasGroup g, float from, float to, float dur)
     {
-        if (group == null) yield break;
-        float elapsed = 0f;
-        group.alpha = from;
-        group.interactable = group.blocksRaycasts = false;
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            group.alpha = Mathf.Lerp(from, to, elapsed / duration);
-            yield return null;
-        }
-        group.alpha = to;
-        group.interactable = group.blocksRaycasts = (to >= 1f);
+        if (g == null) yield break;
+        float t = 0; g.alpha = from;
+        g.interactable = g.blocksRaycasts = false;
+        while (t < dur) { t += Time.deltaTime; g.alpha = Mathf.Lerp(from, to, t/dur); yield return null; }
+        g.alpha = to;
+        g.interactable = g.blocksRaycasts = to >= 1f;
     }
 
-    private IEnumerator RotateTo(Transform t, float targetZ, float duration)
+    private IEnumerator ClosePanelCoroutine(GameObject panel, CanvasGroup group)
     {
-        Quaternion startRot = t.localRotation;
-        Quaternion endRot   = Quaternion.Euler(0, 0, targetZ);
-        float elapsed = 0f;
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            t.localRotation = Quaternion.Lerp(startRot, endRot,
-                Mathf.SmoothStep(0f, 1f, elapsed / duration));
-            yield return null;
-        }
-        t.localRotation = endRot;
+        yield return StartCoroutine(FadeGroup(group, 1f, 0f, 0.2f));
+        panel?.SetActive(false);
     }
 
     void OnDrawGizmosSelected()
     {
-        if (turntableDisc != null)
+        if (turntableTransform != null)
         {
             Gizmos.color = Color.cyan;
-            Gizmos.DrawWireSphere(turntableDisc.position, interactRadius);
+            Gizmos.DrawWireSphere(turntableTransform.position, turntableInteractRadius);
         }
-        if (maestroObject != null)
+        if (maestroTransform != null)
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(maestroObject.transform.position, interactRadiusMaestro);
+            Gizmos.DrawWireSphere(maestroTransform.position, maestroInteractRadius);
         }
     }
 }

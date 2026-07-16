@@ -3564,21 +3564,30 @@ MonoBehaviour:
   tooltipTitle: {fileID: 0}
   tooltipDesc: {fileID: 0}
   tooltipBossName: {fileID: 0}
-  turntableDisc: {fileID: 0}
-  turntableArm: {fileID: 0}
-  discSpinSpeed: 45
-  armPlayAngle: -18
-  armIdleAngle: 0
-  interactPrompt: {fileID: 0}
-  interactRadius: 1.5
-  turntableStartSFX: {fileID: 0}
-  hubMusic: {fileID: 0}
-  hubBPM: 95
-  maestroObject: {fileID: 1438823438}
-  speechBubble: {fileID: 0}
-  speechText: {fileID: 0}
-  speechDuration: 4
-  interactRadiusMaestro: 1.8
+  turntableTransform: {fileID: 0}
+  turntableInteractRadius: 1.8
+  turntablePrompt: {fileID: 0}
+  turntableOpenSFX: {fileID: 0}
+  maestroTransform: {fileID: 1438823442}
+  maestroInteractRadius: 2
+  maestroPrompt: {fileID: 0}
+  maestroPromptText: {fileID: 0}
+  dialoguePanel: {fileID: 0}
+  dialogueGroup: {fileID: 0}
+  dialogueNameText: {fileID: 0}
+  dialogueBodyText: {fileID: 0}
+  dialoguePortrait: {fileID: 0}
+  portraitNormal: {fileID: 0}
+  portraitHappy: {fileID: 0}
+  continueIndicator: {fileID: 0}
+  typewriterSpeed: 0.04
+  shopPanel: {fileID: 655918192}
+  shopGroup: {fileID: 0}
+  btnAmplifier: {fileID: 0}
+  btnJump: {fileID: 0}
+  btnVitality: {fileID: 0}
+  vinylBalanceText: {fileID: 0}
+  btnCloseShop: {fileID: 0}
   fragmentDisplayObjects:
   - {fileID: 1466216063}
   - {fileID: 462210136}
@@ -3586,11 +3595,10 @@ MonoBehaviour:
   - {fileID: 1090157814}
   fragmentInactiveColor: {r: 0.3, g: 0.3, b: 0.3, a: 1}
   fragmentActiveColor: {r: 1, g: 0.85, b: 0, a: 1}
-  shopTriggerZone: {fileID: 0}
-  shopPanel: {fileID: 655918192}
-  upgradeShop: {fileID: 0}
   vinylCountText: {fileID: 1839994573}
   fragmentCountText: {fileID: 1405959058}
+  hubMusic: {fileID: 0}
+  hubBPM: 95
 --- !u!4 &928285540
 Transform:
   m_ObjectHideFlags: 0
@@ -4540,7 +4548,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1438823438}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -4558,7 +4566,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!61 &1438823441
 BoxCollider2D:
   m_ObjectHideFlags: 0
