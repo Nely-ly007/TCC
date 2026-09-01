@@ -80,16 +80,9 @@ public class HubController : MonoBehaviour
 
 
     // ── LOJA ──────────────────────────────────────────────────────
-
-    [Header("Loja de Upgrades")]
-    [SerializeField] private GameObject shopPanel;
-    [SerializeField] private CanvasGroup shopGroup;
-
-    [SerializeField] private Button btnAmplifier;
-    [SerializeField] private Button btnJump;
-    [SerializeField] private Button btnVitality;
-
-    [SerializeField] private TextMeshProUGUI vinylBalanceText;
+    [Header("Loja UI Toolkit")]
+    [SerializeField] private ShopUIToolkit shopUI;
+    
     [SerializeField] private Button btnCloseShop;
 
 
@@ -232,8 +225,8 @@ public class HubController : MonoBehaviour
         if (phaseMapPanel != null)
             phaseMapPanel.SetActive(false);
 
-        if (shopPanel != null)
-            shopPanel.SetActive(false);
+        if (shopUI != null)
+            shopUI.Hide();
 
         if (dialoguePanel != null)
             dialoguePanel.SetActive(false);
@@ -498,10 +491,11 @@ public class HubController : MonoBehaviour
 
             // B = upgrades
 
-            if (
-                Input.GetKeyDown(KeyCode.B) &&
-                !dialogueOpen
-            )
+            if (Input.GetKeyDown(KeyCode.B) && !dialogueOpen)
+            {
+                shopUI.Toggle();
+                return;
+            }
             {
                 if (shopOpen)
                     CloseShop();
@@ -1272,12 +1266,12 @@ public class HubController : MonoBehaviour
         shopOpen = true;
 
 
-        shopPanel?.SetActive(true);
+        shopUI.Show();
 
 
         StartCoroutine(
             FadeGroup(
-                shopGroup,
+                shopUI,
                 0f,
                 1f,
                 0.25f
@@ -1296,8 +1290,7 @@ public class HubController : MonoBehaviour
 
         StartCoroutine(
             ClosePanelCoroutine(
-                shopPanel,
-                shopGroup
+                shopUI
             )
         );
     }
@@ -1492,7 +1485,7 @@ public class HubController : MonoBehaviour
     // ─────────────────────────────────────────────────────────────
 
     private IEnumerator FadeGroup(
-        CanvasGroup g,
+        ShopUIToolkit g,
         float from,
         float to,
         float dur

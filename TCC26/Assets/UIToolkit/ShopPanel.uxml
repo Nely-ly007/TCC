@@ -1,0 +1,49 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UIToolkit/ShopPanel.uss?fileID=7433441132597879392&amp;guid=e6073b816a5e15b4db477b27b4fc0abc&amp;type=3#ShopPanel"/>
+    <ui:VisualElement name="shop-overlay" class="shop-overlay">
+        <ui:VisualElement name="shop-container" class="shop-container">
+            <ui:VisualElement name="shop-header" class="shop-header">
+                <ui:Label name="shop-title" text="LOJA DO MAESTRO" class="shop-title"/>
+                <ui:VisualElement name="vinyl-balance" class="vinyl-balance">
+                    <ui:VisualElement name="vinyl-icon" class="vinyl-icon"/>
+                    <ui:Label name="vinyl-count" text="0" class="vinyl-count"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="cards-container" class="cards-container">
+                <ui:VisualElement name="card-amplifier" class="upgrade-card">
+                    <ui:VisualElement name="card-icon-amplifier" class="card-icon icon-amplifier"/>
+                    <ui:Label text="AMPLIFICADOR" class="card-title"/>
+                    <ui:Label text="+2 de Dano" class="card-effect"/>
+                    <ui:Label name="price-amplifier" text="25 Vinis" class="card-price"/>
+                    <ui:Button name="btn-amplifier" text="COMPRAR" class="buy-button"/>
+                    <ui:VisualElement name="purchased-amplifier" class="purchased-overlay">
+                        <ui:Label text="✓ COMPRADO" class="purchased-label"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="card-jump" class="upgrade-card">
+                    <ui:VisualElement name="card-icon-jump" class="card-icon icon-jump"/>
+                    <ui:Label text="SALTO HARMÔNICO" class="card-title"/>
+                    <ui:Label text="+10% Altura de Pulo" class="card-effect"/>
+                    <ui:Label name="price-jump" text="30 Vinis" class="card-price"/>
+                    <ui:Button name="btn-jump" text="COMPRAR" class="buy-button"/>
+                    <ui:VisualElement name="purchased-jump" class="purchased-overlay">
+                        <ui:Label text="✓ COMPRADO" class="purchased-label"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="card-vitality" class="upgrade-card">
+                    <ui:VisualElement name="card-icon-vitality" class="card-icon icon-vitality"/>
+                    <ui:Label text="VITALIDADE" class="card-title"/>
+                    <ui:Label text="+20 HP Máximo" class="card-effect"/>
+                    <ui:Label name="price-vitality" text="40 Vinis" class="card-price"/>
+                    <ui:Button name="btn-vitality" text="COMPRAR" class="buy-button"/>
+                    <ui:VisualElement name="purchased-vitality" class="purchased-overlay">
+                        <ui:Label text="✓ COMPRADO" class="purchased-label"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="shop-footer" class="shop-footer">
+                <ui:Label text="Pressione B ou ESC para fechar" class="close-hint"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,0 +1,50 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="UnityEngine.UIElements ">
+    <!--
+    POP ADVENTURE - HUD.uxml
+    Salve em: Assets/UI/HUD.uxml
+-->
+    <ui:VisualElement name="hud-root" class="hud-root">
+
+        <!-- CANTO SUPERIOR ESQUERDO: vida + vinis -->
+        <ui:VisualElement name="hud-left" class="hud-left">
+
+            <!-- Barra de vida -->
+            <ui:VisualElement name="health-row" class="health-row">
+                <ui:VisualElement name="heart-icon" class="heart-icon"/>
+                <ui:VisualElement name="health-bar-bg" class="health-bar-bg">
+                    <ui:VisualElement name="health-bar-fill" class="health-bar-fill"/>
+                </ui:VisualElement>
+                <ui:Label name="health-text" text="100/100" class="health-text"/>
+            </ui:VisualElement>
+
+            <!-- Contador de vinis -->
+            <ui:VisualElement name="vinyl-row" class="vinyl-row">
+                <ui:VisualElement name="vinyl-icon" class="vinyl-icon"/>
+                <ui:Label name="vinyl-count" text="0" class="vinyl-count"/>
+            </ui:VisualElement>
+
+        </ui:VisualElement>
+
+        <!-- CANTO SUPERIOR DIREITO: fragmentos -->
+        <ui:VisualElement name="hud-right" class="hud-right">
+            <ui:Label text="FRAGMENTOS" class="fragment-label"/>
+            <ui:VisualElement name="fragment-slots" class="fragment-slots">
+                <ui:VisualElement name="fragment-0" class="fragment-slot"/>
+                <ui:VisualElement name="fragment-1" class="fragment-slot"/>
+                <ui:VisualElement name="fragment-2" class="fragment-slot"/>
+                <ui:VisualElement name="fragment-3" class="fragment-slot"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+        <!-- CENTRO INFERIOR: beat indicator (4 pontos, um por beat do compasso) -->
+        <ui:VisualElement name="hud-bottom" class="hud-bottom">
+            <ui:VisualElement name="beat-indicator" class="beat-indicator">
+                <ui:VisualElement name="beat-dot-0" class="beat-dot"/>
+                <ui:VisualElement name="beat-dot-1" class="beat-dot"/>
+                <ui:VisualElement name="beat-dot-2" class="beat-dot"/>
+                <ui:VisualElement name="beat-dot-3" class="beat-dot"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+
+    </ui:VisualElement></ui:UXML>

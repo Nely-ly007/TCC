@@ -1,0 +1,183 @@
+/*
+    POP ADVENTURE - HUD.uss
+    Salve em: Assets/UI/HUD.uss
+*/
+
+/* ── ROOT: cobre a tela toda, pointer events off para não bloquear input ── */
+.hud-root {
+    position: absolute;
+    left: 0; top: 0; right: 0; bottom: 0;
+    picking-mode: ignore;
+}
+
+/* ══════════════════════════════════════════
+   ESQUERDA — vida + vinis
+══════════════════════════════════════════ */
+.hud-left {
+    position: absolute;
+    left: 16px;
+    top: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    picking-mode: ignore;
+}
+
+/* -- Linha de vida -- */
+.health-row {
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.heart-icon {
+    width: 22px;
+    height: 22px;
+    margin-right: 8px;
+    background-color: rgb(220, 50, 50);
+    border-radius: 50%;
+    /* Substitua por background-image com sprite de coração no script */
+}
+
+.health-bar-bg {
+    width: 160px;
+    height: 14px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 7px;
+    border-width: 1px;
+    border-color: rgba(255, 255, 255, 0.25);
+    overflow: hidden;
+    margin-right: 8px;
+}
+
+.health-bar-fill {
+    height: 100%;
+    width: 100%;           /* controlado via script: style.width = Length.Percent(hp%) */
+    background-color: rgb(80, 220, 80);
+    border-radius: 7px;
+    transition-property: width, background-color;
+    transition-duration: 0.2s;
+}
+
+/* Fill muda de cor conforme HP */
+.health-bar-fill--mid {
+    background-color: rgb(220, 200, 50);   /* amarelo — HP médio */
+}
+
+.health-bar-fill--low {
+    background-color: rgb(220, 60, 60);    /* vermelho — HP baixo */
+}
+
+.health-text {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.85);
+    -unity-font-style: bold;
+    min-width: 60px;
+}
+
+/* -- Linha de vinis -- */
+.vinyl-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.vinyl-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+    background-color: rgb(180, 180, 180);
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: rgb(80, 80, 80);
+    /* Substitua por background-image com sprite de vinil */
+}
+
+.vinyl-count {
+    font-size: 15px;
+    color: rgb(255, 255, 255);
+    -unity-font-style: bold;
+}
+
+/* ══════════════════════════════════════════
+   DIREITA — fragmentos do disco
+══════════════════════════════════════════ */
+.hud-right {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    align-items: flex-end;
+    picking-mode: ignore;
+}
+
+.fragment-label {
+    font-size: 10px;
+    color: rgba(255, 215, 0, 0.6);
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+}
+
+.fragment-slots {
+    flex-direction: row;
+    align-items: center;
+}
+
+.fragment-slot {
+    width: 28px;
+    height: 28px;
+    border-radius: 14px;
+    margin-left: 6px;
+    background-color: rgba(80, 80, 80, 0.6);
+    border-width: 1px;
+    border-color: rgba(255, 215, 0, 0.2);
+    transition-property: background-color, border-color, scale;
+    transition-duration: 0.3s;
+    /* Substitua por background-image com sprite de fragmento */
+}
+
+/* Fragmento coletado */
+.fragment-slot--collected {
+    background-color: rgb(255, 215, 0);
+    border-color: rgb(255, 240, 100);
+    scale: 1.15;
+}
+
+/* ══════════════════════════════════════════
+   INFERIOR CENTRO — beat indicator
+══════════════════════════════════════════ */
+.hud-bottom {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 20px;
+    align-items: center;
+    picking-mode: ignore;
+}
+
+.beat-indicator {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.35);
+    border-radius: 20px;
+    padding: 6px 14px;
+}
+
+.beat-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin-left: 6px;
+    margin-right: 6px;
+    transition-property: background-color, scale;
+    transition-duration: 0.05s;
+}
+
+/* Dot ativo no beat atual */
+.beat-dot--active {
+    background-color: rgb(255, 215, 0);
+    scale: 1.4;
+}
+
+/* Downbeat (beat 1) — maior e branco */
+.beat-dot--downbeat {
+    background-color: rgb(255, 255, 255);
+    scale: 1.6;
+}
