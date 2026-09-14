@@ -1,18 +1,12 @@
-/*
-    POP ADVENTURE - HUD.uss
-    Salve em: Assets/UI/HUD.uss
-*/
-
-/* ── ROOT: cobre a tela toda, pointer events off para não bloquear input ── */
 .hud-root {
     position: absolute;
-    left: 0; top: 0; right: 0; bottom: 0;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
     picking-mode: ignore;
 }
 
-/* ══════════════════════════════════════════
-   ESQUERDA — vida + vinis
-══════════════════════════════════════════ */
 .hud-left {
     position: absolute;
     left: 16px;
@@ -22,7 +16,6 @@
     picking-mode: ignore;
 }
 
-/* -- Linha de vida -- */
 .health-row {
     flex-direction: row;
     align-items: center;
@@ -33,9 +26,12 @@
     width: 22px;
     height: 22px;
     margin-right: 8px;
-    background-color: rgb(220, 50, 50);
+    background-color: rgba(220, 50, 50, 0);
     border-radius: 50%;
-    /* Substitua por background-image com sprite de coração no script */
+    background-image: url("project://database/Assets/Sprites/vinyl/heart.png?fileID=2800000&guid=65056b5d778a1e848ad69f23ff0a5bc6&type=3#heart");
+    background-size: 100% 100%;
+    background-position-x: center;
+    background-position-y: center;
 }
 
 .health-bar-bg {
@@ -51,20 +47,19 @@
 
 .health-bar-fill {
     height: 100%;
-    width: 100%;           /* controlado via script: style.width = Length.Percent(hp%) */
+    width: 100%;
     background-color: rgb(80, 220, 80);
     border-radius: 7px;
     transition-property: width, background-color;
     transition-duration: 0.2s;
 }
 
-/* Fill muda de cor conforme HP */
 .health-bar-fill--mid {
-    background-color: rgb(220, 200, 50);   /* amarelo — HP médio */
+    background-color: rgb(220, 200, 50);
 }
 
 .health-bar-fill--low {
-    background-color: rgb(220, 60, 60);    /* vermelho — HP baixo */
+    background-color: rgb(220, 60, 60);
 }
 
 .health-text {
@@ -72,9 +67,9 @@
     color: rgba(255, 255, 255, 0.85);
     -unity-font-style: bold;
     min-width: 60px;
+    -unity-font-definition: url("project://database/Assets/Fonts/Bangers-Regular.ttf?fileID=12800000&guid=1f8be9921b2840f439a7d0bfbc8d4efc&type=3#Bangers-Regular");
 }
 
-/* -- Linha de vinis -- */
 .vinyl-row {
     flex-direction: row;
     align-items: center;
@@ -88,18 +83,16 @@
     border-radius: 10px;
     border-width: 2px;
     border-color: rgb(80, 80, 80);
-    /* Substitua por background-image com sprite de vinil */
+    background-image: url("project://database/Assets/Sprites/vinyl/Vinyl.png?fileID=2800000&guid=15ffa19fb9075774387923b7149b9dc0&type=3#Vinyl");
 }
 
 .vinyl-count {
     font-size: 15px;
     color: rgb(255, 255, 255);
     -unity-font-style: bold;
+    -unity-font-definition: url("project://database/Assets/Fonts/Bangers-Regular.ttf?fileID=12800000&guid=1f8be9921b2840f439a7d0bfbc8d4efc&type=3#Bangers-Regular");
 }
 
-/* ══════════════════════════════════════════
-   DIREITA — fragmentos do disco
-══════════════════════════════════════════ */
 .hud-right {
     position: absolute;
     right: 16px;
@@ -109,10 +102,11 @@
 }
 
 .fragment-label {
-    font-size: 10px;
+    font-size: 15px;
     color: rgba(255, 215, 0, 0.6);
     letter-spacing: 2px;
     margin-bottom: 4px;
+    -unity-font-definition: url("project://database/Assets/Fonts/Bangers-Regular.ttf?fileID=12800000&guid=1f8be9921b2840f439a7d0bfbc8d4efc&type=3#Bangers-Regular");
 }
 
 .fragment-slots {
@@ -130,22 +124,19 @@
     border-color: rgba(255, 215, 0, 0.2);
     transition-property: background-color, border-color, scale;
     transition-duration: 0.3s;
-    /* Substitua por background-image com sprite de fragmento */
 }
 
-/* Fragmento coletado */
 .fragment-slot--collected {
     background-color: rgb(255, 215, 0);
     border-color: rgb(255, 240, 100);
     scale: 1.15;
+    background-image: url("project://database/Assets/Sprites/vinyl/frag.png?fileID=2800000&guid=db0d1694578373c408af1633f5d8d16f&type=3#frag");
 }
 
-/* ══════════════════════════════════════════
-   INFERIOR CENTRO — beat indicator
-══════════════════════════════════════════ */
 .hud-bottom {
     position: absolute;
-    left: 0; right: 0;
+    left: 0;
+    right: 0;
     bottom: 20px;
     align-items: center;
     picking-mode: ignore;
@@ -170,13 +161,11 @@
     transition-duration: 0.05s;
 }
 
-/* Dot ativo no beat atual */
 .beat-dot--active {
     background-color: rgb(255, 215, 0);
     scale: 1.4;
 }
 
-/* Downbeat (beat 1) — maior e branco */
 .beat-dot--downbeat {
     background-color: rgb(255, 255, 255);
     scale: 1.6;
