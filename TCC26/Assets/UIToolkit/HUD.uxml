@@ -1,9 +1,9 @@
-<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" schemaLocation="UnityEngine.UIElements " editor-extension-mode="False">
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
     <Style src="project://database/Assets/UIToolkit/HUD.uss?fileID=7433441132597879392&amp;guid=15cb99a559da2de41b3b840bbbe589b7&amp;type=3#HUD"/>
     <ui:VisualElement name="hud-root" class="hud-root">
         <ui:VisualElement name="hud-left" class="hud-left">
             <ui:VisualElement name="health-row" class="health-row">
-                <ui:VisualElement name="heart-icon" class="heart-icon" style="background-color: rgba(220, 50, 50, 0); background-size: 85% 85%;"/>
+                <ui:VisualElement name="heart-icon" class="heart-icon"/>
                 <ui:VisualElement name="health-bar-bg" class="health-bar-bg">
                     <ui:VisualElement name="health-bar-fill" class="health-bar-fill"/>
                 </ui:VisualElement>
@@ -12,6 +12,10 @@
             <ui:VisualElement name="vinyl-row" class="vinyl-row">
                 <ui:VisualElement name="vinyl-icon" class="vinyl-icon"/>
                 <ui:Label name="vinyl-count" text="0" class="vinyl-count"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="microphone-row" class="microphone-row">
+                <ui:VisualElement name="microphone-icon" class="microphone-icon"/>
+                <ui:Label text="VIDA EXTRA" class="microphone-label"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="hud-right" class="hud-right">
@@ -23,7 +27,7 @@
                 <ui:VisualElement name="fragment-3" class="fragment-slot"/>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="hud-bottom" class="hud-bottom" style="height: 25px; bottom: 17px;">
+        <ui:VisualElement name="hud-bottom" class="hud-bottom">
             <ui:VisualElement name="beat-indicator" class="beat-indicator">
                 <ui:VisualElement name="beat-dot-0" class="beat-dot"/>
                 <ui:VisualElement name="beat-dot-1" class="beat-dot"/>

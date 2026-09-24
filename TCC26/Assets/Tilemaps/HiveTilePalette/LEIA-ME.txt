@@ -1,0 +1,27 @@
+THE HIVE TILE PALETTE - Unity 2D (Fase 2)
+Grid: 1 celula = 64x64 px = 1 unidade (Pixels Per Unit = 64)
+
+INSTALAR
+1. Copie a pasta HiveTilePalette inteira para dentro de Assets/.
+2. Aguarde a compilacao.
+3. Menu: Tools > Hive Tile Palette > 1. Construir Tudo
+4. Window > 2D > Tile Palette > escolha "HivePalette_Auto".
+
+Se der erro de compilacao em GridPaletteUtility (muda entre versoes):
+crie uma paleta vazia (Tile Palette > Create New Palette), selecione o prefab
+dela no Project e use: Tools > Hive Tile Palette > 3. Preencher paleta selecionada
+(apague a linha GridPaletteUtility.CreateNewPalette(...) do script).
+
+TAMANHOS (celulas de 64 px)
+01_Plataformas : 2x1 (128x64), exceto favo_dourado 1x1 e plat_fina_metal (2x1 com arte fina no topo)
+02_Blocos      : 1x1
+03_Fundos      : 2x4, 2x4, 1x4, 2x4 (opacos)
+04 a 09        : multiplos de 64 (ver PREVIEW_grade_64px.png)
+Pivot de cada sprite = canto inferior-esquerdo da celula.
+
+COLISAO (Tile Collider Type)
+Grid: 01 (blocos de chao) e 02 | Sprite: 01 plat_fina_*, rampa_*, 06, 07, 08 | None: o resto
+
+LAYERS SUGERIDAS (um Tilemap por camada)
+Fundo (Order -10): 03 | Decor (-5): 04, 05 | Chao (0): 01, 02, 08
+Moveis/Perigos (1): 06, 07 | Itens (2): 09

@@ -23,20 +23,17 @@
 }
 
 .heart-icon {
-    width: 22px;
-    height: 22px;
+    width: 30px;
+    height: 30px;
     margin-right: 8px;
     background-color: rgba(220, 50, 50, 0);
     border-radius: 50%;
     background-image: url("project://database/Assets/Sprites/vinyl/heart.png?fileID=2800000&guid=65056b5d778a1e848ad69f23ff0a5bc6&type=3#heart");
-    background-size: 100% 100%;
-    background-position-x: center;
-    background-position-y: center;
 }
 
 .health-bar-bg {
-    width: 160px;
-    height: 14px;
+    width: 175px;
+    height: 16px;
     background-color: rgba(0, 0, 0, 0.6);
     border-radius: 7px;
     border-width: 1px;
@@ -73,13 +70,15 @@
 .vinyl-row {
     flex-direction: row;
     align-items: center;
+    background-image: none;
+    background-color: rgba(0, 0, 0, 0);
 }
 
 .vinyl-icon {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
     margin-right: 8px;
-    background-color: rgb(180, 180, 180);
+    background-color: rgba(180, 180, 180, 0);
     border-radius: 10px;
     border-width: 2px;
     border-color: rgb(80, 80, 80);
@@ -87,7 +86,7 @@
 }
 
 .vinyl-count {
-    font-size: 15px;
+    font-size: 25px;
     color: rgb(255, 255, 255);
     -unity-font-style: bold;
     -unity-font-definition: url("project://database/Assets/Fonts/Bangers-Regular.ttf?fileID=12800000&guid=1f8be9921b2840f439a7d0bfbc8d4efc&type=3#Bangers-Regular");
@@ -102,7 +101,7 @@
 }
 
 .fragment-label {
-    font-size: 15px;
+    font-size: 20px;
     color: rgba(255, 215, 0, 0.6);
     letter-spacing: 2px;
     margin-bottom: 4px;
@@ -130,7 +129,6 @@
     background-color: rgb(255, 215, 0);
     border-color: rgb(255, 240, 100);
     scale: 1.15;
-    background-image: url("project://database/Assets/Sprites/vinyl/frag.png?fileID=2800000&guid=db0d1694578373c408af1633f5d8d16f&type=3#frag");
 }
 
 .hud-bottom {
@@ -169,4 +167,43 @@
 .beat-dot--downbeat {
     background-color: rgb(255, 255, 255);
     scale: 1.6;
+}
+
+.microphone-row {
+    flex-direction: row;
+    align-items: center;
+    margin-top: 6px;
+    background-color: rgba(255, 80, 150, 0.15);
+    border-width: 1px;
+    border-color: rgba(255, 80, 150, 0.5);
+    border-radius: 12px;
+    padding: 3px 10px;
+    display: none;
+    transition-property: opacity;
+    transition-duration: 0.3s;
+}
+
+.microphone-row--visible {
+    display: flex;
+}
+
+.microphone-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 6px;
+    background-color: rgb(255, 80, 150);
+    border-radius: 10px;
+    background-image: url("project://database/Assets/Sprites/Mic/microphone.png?fileID=2800000&guid=915553de694ca6242a224168d770ba3b&type=3#microphone");
+}
+
+.microphone-label {
+    font-size: 11px;
+    color: rgb(255, 150, 200);
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+}
+
+.microphone-row--pulse {
+    border-color: rgb(255, 80, 150);
+    background-color: rgba(255, 80, 150, 0.3);
 }
