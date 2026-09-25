@@ -4,7 +4,11 @@ using UnityEngine.Events;
 /// <summary>
 /// POP ADVENTURE - RhythmManager
 /// Gerencia o sistema de BPM e dispara eventos sincronizados com a música.
-/// Usa AudioSettings.dspTime para precisão máxima (sem drift de frames).
+///
+/// IMPORTANTE:
+/// Este sistema NÃO precisa tocar a música.
+/// O MusicSectionManager controla o áudio.
+/// O RhythmManager apenas acompanha o tempo da música usando dspTime.
 /// </summary>
 public class RhythmManager : MonoBehaviour
 {
@@ -15,10 +19,10 @@ public class RhythmManager : MonoBehaviour
     [SerializeField] private AudioSource musicSource;
 
     [Header("Eventos de Beat")]
-    public UnityEvent OnBeat;           // Dispara em todo beat
-    public UnityEvent OnBeat1;          // Beat 1 do compasso (downbeat)
-    public UnityEvent OnBeat3;          // Beat 3 do compasso (backbeat)
-    public UnityEvent OnHalfBeat;       // Dispara em meios-beats (colcheias)
+    public UnityEvent OnBeat;
+    public UnityEvent OnBeat1;
+    public UnityEvent OnBeat3;
+    public UnityEvent OnHalfBeat;
 
     [Header("Feedback Visual")]
     [SerializeField] private bool enableScreenPulse = true;
@@ -29,7 +33,13 @@ public class RhythmManager : MonoBehaviour
     private double nextHalfBeatTime;
     private double beatInterval;
     private double halfBeatInterval;
-    private int currentBeat = 0;       // 0-3 (compasso 4/4)
+
+    // 0 = Beat 1
+    // 1 = Beat 2
+    // 2 = Beat 3
+    // 3 = Beat 4
+    private int currentBeat = 0;
+
     private bool isPlaying = false;
 
     // Propriedades públicas
@@ -38,9 +48,9 @@ public class RhythmManager : MonoBehaviour
     public int CurrentBeat => currentBeat;
     public bool IsPlaying => isPlaying;
 
-    // Evento estático para sistemas que não têm referência ao manager
+    // Eventos estáticos
     public static event System.Action OnBeatStatic;
-    public static event System.Action<int> OnBeatNumberStatic; // envia número do beat (0-3)
+    public static event System.Action<int> OnBeatNumberStatic;
 
     void Awake()
     {
@@ -49,10 +59,17 @@ public class RhythmManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
+
         DontDestroyOnLoad(gameObject);
+
+        // Garante que exista um AudioSource caso outro sistema
+        // queira utilizar o RhythmManager para tocar áudio.
         if (GetComponent<AudioSource>() == null)
+        {
             gameObject.AddComponent<AudioSource>();
+        }
     }
 
     void Start()
@@ -66,88 +83,173 @@ public class RhythmManager : MonoBehaviour
     public void SetBPM(float newBpm)
     {
         bpm = newBpm;
+
         beatInterval = 60.0 / bpm;
         halfBeatInterval = beatInterval / 2.0;
     }
 
     /// <summary>
-    /// Inicia a música e sincroniza o sistema de beat com o dspTime.
+    /// Inicia o sistema de beat sem tocar nenhum áudio.
+    ///
+    /// startDspTime indica exatamente quando a música começou.
+    /// Isso permite sincronizar o RhythmManager com músicas
+    /// iniciadas através de PlayScheduled().
     /// </summary>
-    public void StartMusic(AudioClip clip = null, float startBpm = -1)
+    public void StartBeatOnly(float startBpm, double startDspTime = -1)
     {
-        if (startBpm > 0) SetBPM(startBpm);
+        SetBPM(startBpm);
 
-        if (clip != null) musicSource.clip = clip;
-        musicSource.Play();
+        // Se nenhum tempo foi informado, começa imediatamente.
+        if (startDspTime < 0)
+        {
+            startDspTime = AudioSettings.dspTime;
+        }
 
-        // Sincroniza com dspTime para precisão
-        nextBeatTime = AudioSettings.dspTime + beatInterval;
-        nextHalfBeatTime = AudioSettings.dspTime + halfBeatInterval;
+        // O primeiro beat acontece um intervalo depois
+        // do início da música.
+        nextBeatTime = startDspTime + beatInterval;
+
+        // O primeiro half-beat acontece metade de um beat
+        // depois do início da música.
+        nextHalfBeatTime = startDspTime + halfBeatInterval;
+
         currentBeat = 0;
         isPlaying = true;
     }
 
+    /// <summary>
+    /// Inicia a música diretamente pelo RhythmManager.
+    ///
+    /// Mantido para compatibilidade com outros sistemas.
+    /// Para a Fase 4, o MusicSectionManager deve controlar o áudio.
+    /// </summary>
+    public void StartMusic(AudioClip clip = null, float startBpm = -1)
+    {
+        if (startBpm > 0)
+        {
+            SetBPM(startBpm);
+        }
+
+        if (clip != null)
+        {
+            musicSource.clip = clip;
+        }
+
+        musicSource.Play();
+
+        // Como o áudio começa imediatamente,
+        // usamos o dspTime atual como referência.
+        StartBeatOnly(bpm, AudioSettings.dspTime);
+    }
+
+    /// <summary>
+    /// Para o sistema de música e de beat.
+    /// </summary>
     public void StopMusic()
     {
-        musicSource.Stop();
+        if (musicSource != null)
+        {
+            musicSource.Stop();
+        }
+
         isPlaying = false;
     }
 
     void Update()
     {
-        if (!isPlaying) return;
+        if (!isPlaying)
+            return;
 
         double currentDspTime = AudioSettings.dspTime;
 
-        // Verifica half-beat
+        // =========================
+        // HALF-BEAT
+        // =========================
+
         if (currentDspTime >= nextHalfBeatTime)
         {
-            nextHalfBeatTime += halfBeatInterval;
-            OnHalfBeat?.Invoke();
+            // Evita acumular atraso caso um frame demore.
+            while (currentDspTime >= nextHalfBeatTime)
+            {
+                nextHalfBeatTime += halfBeatInterval;
+                OnHalfBeat?.Invoke();
+            }
         }
 
-        // Verifica beat completo
+        // =========================
+        // BEAT COMPLETO
+        // =========================
+
         if (currentDspTime >= nextBeatTime)
         {
-            nextBeatTime += beatInterval;
-            TriggerBeat();
+            // Evita perder beats caso haja um frame muito demorado.
+            while (currentDspTime >= nextBeatTime)
+            {
+                nextBeatTime += beatInterval;
+                TriggerBeat();
+            }
         }
     }
 
+    /// <summary>
+    /// Dispara todos os eventos relacionados ao beat.
+    /// </summary>
     private void TriggerBeat()
     {
+        // Evento geral
         OnBeat?.Invoke();
+
+        // Eventos estáticos
         OnBeatStatic?.Invoke();
         OnBeatNumberStatic?.Invoke(currentBeat);
 
-        // Dispara eventos específicos por beat do compasso
-        if (currentBeat == 0) OnBeat1?.Invoke();
-        if (currentBeat == 2) OnBeat3?.Invoke();
+        // Beat 1 do compasso
+        if (currentBeat == 0)
+        {
+            OnBeat1?.Invoke();
+        }
 
+        // Beat 3 do compasso
+        if (currentBeat == 2)
+        {
+            OnBeat3?.Invoke();
+        }
+
+        // Feedback visual
         if (enableScreenPulse)
+        {
             CameraShake.Instance?.Pulse(pulseIntensity);
+        }
 
+        // Próximo beat
         currentBeat = (currentBeat + 1) % 4;
     }
 
     /// <summary>
-    /// Retorna quanto tempo (0-1) falta para o próximo beat.
-    /// Útil para animações de antecipação.
+    /// Retorna o progresso em direção ao próximo beat.
     /// </summary>
     public float GetBeatProgress()
     {
-        double timeSinceLastBeat = nextBeatTime - AudioSettings.dspTime;
-        return 1f - (float)(timeSinceLastBeat / beatInterval);
+        double timeSinceLastBeat =
+            nextBeatTime - AudioSettings.dspTime;
+
+        return 1f -
+            (float)(timeSinceLastBeat / beatInterval);
     }
 
     /// <summary>
-    /// Verifica se estamos dentro da janela de timing (para ataques rítmicos).
+    /// Verifica se estamos dentro da janela de timing.
     /// </summary>
     public bool IsOnBeat(float toleranceSeconds = 0.1f)
     {
-        double timeToBeat = nextBeatTime - AudioSettings.dspTime;
-        double timeSinceBeat = AudioSettings.dspTime - (nextBeatTime - beatInterval);
-        return timeToBeat < toleranceSeconds || timeSinceBeat < toleranceSeconds;
+        double timeToBeat =
+            nextBeatTime - AudioSettings.dspTime;
+
+        double timeSinceBeat =
+            AudioSettings.dspTime -
+            (nextBeatTime - beatInterval);
+
+        return timeToBeat < toleranceSeconds ||
+               timeSinceBeat < toleranceSeconds;
     }
-    
 }

@@ -882,7 +882,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   moveSpeed: 5
-  jumpHeight: 2
+  jumpHeight: 1.5
   riseTime: 0.4
   fallTime: 0.5
   attackCooldown: 0.4

@@ -320,10 +320,9 @@ public class HubController : MonoBehaviour
     private string GetDifficultyText(int d)
     {
         d = Mathf.Clamp(d, 1, 5);
-        string stars = "";
-        for (int i = 0; i < 5; i++) stars += i < d ? "★" : "☆";
+        for (int i = 0; i < 5; i++) ;
         string[] names = { "", "Muito Fácil", "Fácil", "Médio", "Difícil", "Muito Difícil" };
-        return $"Dificuldade: {stars}\n{names[d]}";
+        return $"Dificuldade: \n{names[d]}";
     }
 
     private void PositionTooltip(RectTransform buttonRect)

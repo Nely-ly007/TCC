@@ -1,152 +1,356 @@
 using UnityEngine;
 
 /// <summary>
-/// Seções da música da Fase 4 (mix harmônico).
-/// Adicione/remova valores aqui se sua estrutura de blocos mudar.
+/// Seções da música da Fase 4.
+///
+/// Intro  = introdução da música
+/// Loop   = música normal da fase
+/// Combate = música durante combate
+/// Boss   = música do chefe
 /// </summary>
-public enum MusicSection { Intro, Loop, Combate, Boss }
+public enum MusicSection
+{
+    Intro,
+    Loop,
+    Combate,
+    Boss
+}
 
 /// <summary>
-/// Gerencia a troca entre os blocos de música da fase, sempre alinhada
-/// ao início de um compasso (nunca corta no meio de uma frase musical).
+/// POP ADVENTURE - MusicSectionManager
 ///
-/// COMO USAR:
-/// 1. Crie um GameObject vazio na cena da Fase 4 (ex: "MusicManager").
-/// 2. Adicione este script a ele.
-/// 3. Arraste os 4 arquivos .wav exportados do BandLab nos campos
-///    Intro Clip / Loop Clip / Combat Clip / Boss Clip no Inspector.
-/// 4. Ajuste o BPM para o mesmo valor usado no RhythmManager da fase.
-/// 5. Chame MusicSectionManager.Instance.RequestSection(MusicSection.X)
-///    de qualquer outro script (ex: um trigger, o BossController, etc).
+/// Gerencia a troca entre os blocos de música da fase.
+///
+/// A troca acontece sempre no início de um compasso,
+/// evitando cortes no meio da música.
+///
+/// O áudio é controlado por duas AudioSources usando
+/// AudioSettings.dspTime para manter a troca precisa.
+///
+/// O RhythmManager NÃO toca áudio.
+/// Ele apenas acompanha o mesmo dspTime da música.
 /// </summary>
 [DisallowMultipleComponent]
 public class MusicSectionManager : MonoBehaviour
 {
     public static MusicSectionManager Instance { get; private set; }
 
-    [Header("Ritmo (deve bater com o RhythmManager desta fase)")]
-    [Tooltip("Use o mesmo BPM definido para a Fase 4 no RhythmManager.")]
+    [Header("Ritmo")]
+    [Tooltip("Use exatamente o mesmo BPM usado no RhythmManager.")]
     public float bpm = 110f;
-    [Tooltip("Quantos tempos (batidas) tem cada compasso. Use 4 para compasso 4/4.")]
+
+    [Tooltip("Quantidade de beats por compasso. Para 4/4 use 4.")]
     public int beatsPerCompasso = 4;
 
-    [Header("Clipes de cada seção (exportados do BandLab)")]
+    [Header("Clipes de cada seção")]
+    [Tooltip("Música de introdução. Toca apenas uma vez.")]
     public AudioClip introClip;
+
+    [Tooltip("Música normal da fase. Fica em loop.")]
     public AudioClip loopClip;
+
+    [Tooltip("Música durante combates. Fica em loop.")]
     public AudioClip combatClip;
+
+    [Tooltip("Música do Boss. Fica em loop.")]
     public AudioClip bossClip;
 
-    // Duas AudioSources para permitir a troca sem gap/clique perceptível.
+    // Duas AudioSources permitem preparar a próxima música
+    // antes da troca acontecer.
     private AudioSource sourceA;
     private AudioSource sourceB;
+
+    // Source atualmente tocando
     private AudioSource activeSource;
+
+    // Source que está livre para receber a próxima música
     private AudioSource idleSource;
 
-    private double compassoLength;      // duração de 1 compasso, em segundos
-    private double lastSectionStartDsp; // quando a seção atual começou (dspTime)
-    private double nextSwitchDspTime;   // quando a próxima troca deve acontecer
+    // Duração de um compasso
+    private double compassoLength;
+
+    // Momento DSP em que a seção atual começou
+    private double lastSectionStartDsp;
+
+    // Momento DSP em que a próxima troca acontecerá
+    private double nextSwitchDspTime;
+
+    // Seção atualmente tocando
     private MusicSection currentSection = MusicSection.Intro;
+
+    // Seção que será tocada na próxima troca
     private MusicSection? pendingSection = null;
+
+    // =========================================================
+    // UNITY - AWAKE
+    // =========================================================
 
     void Awake()
     {
+        // Impede que existam dois MusicSectionManagers.
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
 
+        // Cria as duas AudioSources.
         sourceA = gameObject.AddComponent<AudioSource>();
         sourceB = gameObject.AddComponent<AudioSource>();
+
         sourceA.playOnAwake = false;
         sourceB.playOnAwake = false;
 
+        // Define qual source começa ativa.
         activeSource = sourceA;
         idleSource = sourceB;
 
-        compassoLength = (60.0 / bpm) * beatsPerCompasso;
+        // Calcula a duração de um compasso.
+        compassoLength =
+            (60.0 / bpm) * beatsPerCompasso;
     }
+
+    // =========================================================
+    // UNITY - START
+    // =========================================================
 
     void Start()
     {
-        PlayImmediate(introClip, loopThisClip: false);
+        // Começa a Intro imediatamente.
+        PlayImmediate(
+            introClip,
+            loopThisClip: false
+        );
+
         currentSection = MusicSection.Intro;
 
-        // Agenda a troca automática pro Loop assim que a Intro terminar.
-        double introDuration = (introClip != null) ? introClip.length : compassoLength;
-        ScheduleTransition(MusicSection.Loop, AudioSettings.dspTime + introDuration);
+        // IMPORTANTE:
+        // A Intro começou em lastSectionStartDsp.
+        // O RhythmManager começa a contar usando exatamente
+        // o mesmo momento.
+        RhythmManager.Instance?.StartBeatOnly(
+            bpm,
+            lastSectionStartDsp
+        );
+
+        // Descobre a duração da Intro.
+        double introDuration =
+            (introClip != null)
+                ? introClip.length
+                : compassoLength;
+
+        // Agenda automaticamente o Loop.
+        //
+        // A troca acontecerá quando a Intro terminar.
+        ScheduleTransition(
+            MusicSection.Loop,
+            AudioSettings.dspTime + introDuration
+        );
     }
+
+    // =========================================================
+    // UNITY - UPDATE
+    // =========================================================
 
     void Update()
     {
-        if (pendingSection.HasValue && AudioSettings.dspTime >= nextSwitchDspTime - 0.05)
+        // Não existe troca pendente.
+        if (!pendingSection.HasValue)
+            return;
+
+        // Chegamos perto do momento da troca.
+        //
+        // A margem de 0.05 segundos permite que o Update
+        // prepare a troca antes do momento exato.
+        if (AudioSettings.dspTime >= nextSwitchDspTime - 0.05)
         {
-            SwitchToSection(pendingSection.Value);
+            SwitchToSection(
+                pendingSection.Value
+            );
+
             pendingSection = null;
         }
     }
 
+    // =========================================================
+    // REQUEST SECTION
+    // =========================================================
+
     /// <summary>
-    /// Chame este método a partir de um marcador (trigger), do BossController,
-    /// do GameManager, etc. A troca real só acontece no início do PRÓXIMO
-    /// compasso — nunca imediatamente — para não quebrar o ritmo da música.
+    /// Solicita a troca para outra seção.
+    ///
+    /// A troca NÃO acontece imediatamente.
+    /// Ela acontece no início do próximo compasso.
+    ///
+    /// Exemplos:
+    ///
+    /// MusicSectionManager.Instance.RequestSection(
+    ///     MusicSection.Combate
+    /// );
+    ///
+    /// MusicSectionManager.Instance.RequestSection(
+    ///     MusicSection.Boss
+    /// );
     /// </summary>
     public void RequestSection(MusicSection section)
     {
-        if (section == currentSection && !pendingSection.HasValue) return;
+        // Se já estamos nessa seção e não existe outra
+        // troca pendente, não precisamos fazer nada.
+        if (section == currentSection &&
+            !pendingSection.HasValue)
+        {
+            return;
+        }
 
         double now = AudioSettings.dspTime;
-        double compassosDecorridos = System.Math.Ceiling((now - lastSectionStartDsp) / compassoLength);
-        if (compassosDecorridos < 1) compassosDecorridos = 1;
-        double proximoCompasso = lastSectionStartDsp + compassosDecorridos * compassoLength;
 
-        ScheduleTransition(section, proximoCompasso);
+        // Descobre quantos compassos já passaram
+        // desde o início da seção atual.
+        double compassosDecorridos =
+            System.Math.Ceiling(
+                (now - lastSectionStartDsp)
+                / compassoLength
+            );
+
+        // Garante pelo menos um compasso de distância.
+        if (compassosDecorridos < 1)
+        {
+            compassosDecorridos = 1;
+        }
+
+        // Calcula o início do próximo compasso.
+        double proximoCompasso =
+            lastSectionStartDsp +
+            compassosDecorridos * compassoLength;
+
+        // Agenda a troca.
+        ScheduleTransition(
+            section,
+            proximoCompasso
+        );
     }
 
-    private void ScheduleTransition(MusicSection section, double dspTime)
+    // =========================================================
+    // SCHEDULE TRANSITION
+    // =========================================================
+
+    private void ScheduleTransition(
+        MusicSection section,
+        double dspTime)
     {
         pendingSection = section;
         nextSwitchDspTime = dspTime;
     }
 
-    private void SwitchToSection(MusicSection section)
-    {
-        AudioClip clip = GetClip(section);
-        bool shouldLoop = section != MusicSection.Intro; // Loop/Combate/Boss repetem; Intro não.
+    // =========================================================
+    // SWITCH TO SECTION
+    // =========================================================
 
+    private void SwitchToSection(
+        MusicSection section)
+    {
+        // Descobre qual AudioClip corresponde à seção.
+        AudioClip clip = GetClip(section);
+
+        // Intro não repete.
+        // Loop, Combate e Boss repetem.
+        bool shouldLoop =
+            section != MusicSection.Intro;
+
+        // Configura a AudioSource que estava livre.
         idleSource.clip = clip;
         idleSource.loop = shouldLoop;
-        idleSource.PlayScheduled(nextSwitchDspTime);
 
-        activeSource.SetScheduledEndTime(nextSwitchDspTime);
+        // =====================================================
+        // AQUI ESTÁ A PARTE MAIS IMPORTANTE
+        // =====================================================
 
-        // Troca os papéis: quem tocava vira "ociosa", a nova vira "ativa".
-        var temp = activeSource;
+        // A nova música começa EXATAMENTE no
+        // nextSwitchDspTime.
+        idleSource.PlayScheduled(
+            nextSwitchDspTime
+        );
+
+        // A música anterior termina exatamente no mesmo
+        // momento em que a nova começa.
+        activeSource.SetScheduledEndTime(
+            nextSwitchDspTime
+        );
+
+        // =====================================================
+        // TROCA AS SOURCES
+        // =====================================================
+
+        AudioSource temp = activeSource;
+
         activeSource = idleSource;
         idleSource = temp;
 
+        // Atualiza a seção atual.
         currentSection = section;
+
+        // Salva o momento exato em que a nova seção começou.
         lastSectionStartDsp = nextSwitchDspTime;
+
+        // =====================================================
+        // SINCRONIZA O RHYTHM MANAGER
+        // =====================================================
+
+        // O RhythmManager NÃO toca a música.
+        //
+        // Ele apenas começa sua contagem exatamente no
+        // mesmo momento em que o novo AudioClip começa.
+        RhythmManager.Instance?.StartBeatOnly(
+            bpm,
+            nextSwitchDspTime
+        );
     }
 
-    private void PlayImmediate(AudioClip clip, bool loopThisClip)
+    // =========================================================
+    // PLAY IMMEDIATE
+    // =========================================================
+
+    private void PlayImmediate(
+        AudioClip clip,
+        bool loopThisClip)
     {
+        // Configura a AudioSource ativa.
         activeSource.clip = clip;
         activeSource.loop = loopThisClip;
+
+        // Começa imediatamente.
         activeSource.Play();
-        lastSectionStartDsp = AudioSettings.dspTime;
+
+        // Guarda o momento exato em que começou.
+        lastSectionStartDsp =
+            AudioSettings.dspTime;
     }
 
-    private AudioClip GetClip(MusicSection section)
+    // =========================================================
+    // GET CLIP
+    // =========================================================
+
+    private AudioClip GetClip(
+        MusicSection section)
     {
         switch (section)
         {
-            case MusicSection.Intro: return introClip;
-            case MusicSection.Loop: return loopClip;
-            case MusicSection.Combate: return combatClip;
-            case MusicSection.Boss: return bossClip;
-            default: return null;
+            case MusicSection.Intro:
+                return introClip;
+
+            case MusicSection.Loop:
+                return loopClip;
+
+            case MusicSection.Combate:
+                return combatClip;
+
+            case MusicSection.Boss:
+                return bossClip;
+
+            default:
+                return null;
         }
     }
 }
