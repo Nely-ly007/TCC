@@ -894,10 +894,10 @@ MonoBehaviour:
   attackPoint: {fileID: 1452764411546284801}
   attackProjectilePrefab: {fileID: 4933821102775095242, guid: 3c3dec019b001a0448a1ad0aee437f97, type: 3}
   maxHP: 100
-  attackSFX: {fileID: 0}
-  damageSFX: {fileID: 0}
-  jumpSFX: {fileID: 0}
-  deathSFX: {fileID: 0}
+  attackSFX: {fileID: 8300000, guid: 1920a7520f980ba4dbd0b072df6bff42, type: 3}
+  damageSFX: {fileID: 8300000, guid: cf25f1c53255c4e4d8c2c6f227856beb, type: 3}
+  jumpSFX: {fileID: 8300000, guid: 053d7402faf9e8a4d803b1d9000fb2ad, type: 3}
+  deathSFX: {fileID: 8300000, guid: 1906347864b5c28419998e096d2f9b92, type: 3}
   groundCheck: {fileID: 5751757074055047903}
   groundCheckRadius: 0.1
   groundLayer:
