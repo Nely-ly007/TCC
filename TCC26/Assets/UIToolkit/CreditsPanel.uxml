@@ -1,0 +1,224 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+
+    <ui:VisualElement name="credits-overlay"
+        style="
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.75);
+            align-items: center;
+            justify-content: center;
+        ">
+
+        <ui:VisualElement name="credits-container"
+            style="
+                width: 550px;
+                background-color: rgb(15, 12, 20);
+                border-width: 2px;
+                border-color: rgb(255, 215, 0);
+                border-radius: 16px;
+                padding: 18px 32px;
+                flex-direction: column;
+                align-items: center;
+                flex-shrink: 0;
+            ">
+
+            <!-- TÍTULO -->
+            <ui:Label
+                text="POP ADVENTURE"
+                style="
+                    font-size: 26px;
+                    color: rgb(255, 215, 0);
+                    -unity-font-style: bold;
+                    letter-spacing: 3px;
+                    margin-bottom: 2px;
+                "/>
+
+            <ui:Label
+                text="Vertical Slice — 2026"
+                style="
+                    font-size: 12px;
+                    color: rgba(255, 215, 0, 0.5);
+                    letter-spacing: 2px;
+                    margin-bottom: 8px;
+                    height: 18px;
+                    -unity-text-align: upper-center;
+                "/>
+
+
+            <!-- LINHA -->
+            <ui:VisualElement
+                style="
+                    width: 100%;
+                    height: 1px;
+                    background-color: rgba(255, 215, 0, 0.25);
+                    margin-bottom: 8px;
+                    flex-shrink: 0;
+                "/>
+
+
+            <!-- EQUIPE -->
+            <ui:Label
+                text="EQUIPE"
+                style="
+                    font-size: 11px;
+                    color: rgba(255, 215, 0, 0.6);
+                    letter-spacing: 3px;
+                    margin-bottom: 3px;
+                "/>
+
+            <ui:Label
+                name="team-name"
+                text="Lily Studio"
+                style="
+                    font-size: 18px;
+                    color: rgb(255, 255, 255);
+                    -unity-font-style: bold;
+                    margin-bottom: 1px;
+                "/>
+
+            <ui:Label
+                text="Design · Programação · Arte"
+                style="
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.5);
+                    margin-bottom: 8px;
+                "/>
+
+
+            <!-- LINHA -->
+            <ui:VisualElement
+                style="
+                    width: 100%;
+                    height: 1px;
+                    background-color: rgba(255, 215, 0, 0.25);
+                    margin-bottom: 8px;
+                    flex-shrink: 0;
+                "/>
+
+
+            <!-- INFORMAÇÕES ACADÊMICAS -->
+            <ui:VisualElement
+                name="academic-info"
+                style="
+                    width: 100%;
+                    align-items: center;
+                    margin-bottom: 8px;
+                    flex-shrink: 0;
+                ">
+
+                <ui:Label
+                    name="discipline-label"
+                    text="DISCIPLINA"
+                    style="
+                        font-size: 11px;
+                        color: rgba(255, 215, 0, 0.6);
+                        letter-spacing: 2px;
+                        margin-bottom: 2px;
+                    "/>
+
+                <ui:Label
+                    name="discipline-value"
+                    text="Nome da Disciplina"
+                    style="
+                        font-size: 14px;
+                        color: rgb(200, 200, 200);
+                        margin-bottom: 6px;
+                    "/>
+
+
+                <ui:Label
+                    text="INSTITUIÇÃO"
+                    style="
+                        font-size: 11px;
+                        color: rgba(255, 215, 0, 0.6);
+                        letter-spacing: 2px;
+                        margin-bottom: 2px;
+                    "/>
+
+                <ui:Label
+                    name="institution-value"
+                    text="IFRN"
+                    style="
+                        font-size: 14px;
+                        color: rgb(200, 200, 200);
+                        margin-bottom: 6px;
+                    "/>
+
+
+                <ui:Label
+                    text="ANO"
+                    style="
+                        font-size: 11px;
+                        color: rgba(255, 215, 0, 0.6);
+                        letter-spacing: 2px;
+                        margin-bottom: 2px;
+                    "/>
+
+                <ui:Label
+                    name="year-value"
+                    text="2026"
+                    style="
+                        font-size: 14px;
+                        color: rgb(200, 200, 200);
+                        -unity-text-align: upper-center;
+                    "/>
+
+            </ui:VisualElement>
+
+
+            <!-- LINHA -->
+            <ui:VisualElement
+                style="
+                    width: 100%;
+                    height: 1px;
+                    background-color: rgba(255, 215, 0, 0.25);
+                    margin-bottom: 8px;
+                    flex-shrink: 0;
+                "/>
+
+
+            <!-- FEITO COM -->
+            <ui:Label
+                text="FEITO COM"
+                style="
+                    font-size: 11px;
+                    color: rgba(255, 215, 0, 0.6);
+                    letter-spacing: 2px;
+                    margin-bottom: 3px;
+                    -unity-text-align: upper-center;
+                "/>
+
+            <ui:Label
+                text="Unity 2D  ·  C#  ·  UI Toolkit"
+                style="
+                    font-size: 12px;
+                    color: rgba(255, 255, 255, 0.4);
+                    margin-bottom: 8px;
+                    -unity-text-align: upper-center;
+                "/>
+
+
+            <!-- BOTÃO -->
+            <ui:Button
+                name="btn-close-credits"
+                text="FECHAR"
+                style="
+                    width: 100%;
+                    height: 36px;
+                    background-color: rgb(255, 215, 0);
+                    border-width: 0;
+                    border-radius: 8px;
+                    color: rgb(15, 12, 20);
+                    font-size: 14px;
+                    -unity-font-style: bold;
+                    flex-shrink: 0;
+                "/>
+
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+
+</ui:UXML>
