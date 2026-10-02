@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ui:UXML
+    xmlns:ui="UnityEngine.UIElements"
+    xmlns:uie="UnityEditor.UIElements"
+    editor-extension-mode="False">
+
+    <ui:VisualElement name="boss-hp-root" style="position:absolute; left:0; right:0; bottom:40px; align-items:center; pick-mode:ignore;">
+
+        <ui:VisualElement name="boss-hp-container" style="width:600px; flex-direction:column; align-items:center;">
+
+            <!-- Nome do boss -->
+            <ui:Label name="boss-name" text="DONNA" style="font-size:16px; color:rgb(255,215,0); -unity-font-style:bold; letter-spacing:3px; margin-bottom:6px;" />
+
+            <!-- Barra de HP -->
+            <ui:VisualElement name="boss-bar-bg" style="width:100%; height:18px; background-color:rgba(0,0,0,0.7); border-radius:9px; border-width:2px; border-color:rgb(255,215,0); overflow:hidden;">
+                <ui:VisualElement name="boss-bar-fill" style="width:100%; height:100%; background-color:rgb(220,50,80); border-radius:9px;" />
+                <!-- Brilho superior -->
+                <ui:VisualElement style="position:absolute; left:0; top:0; right:0; height:6px; background-color:rgba(255,255,255,0.15); border-radius:9px;" />
+            </ui:VisualElement>
+
+            <!-- Texto HP -->
+            <ui:Label name="boss-hp-text" text="300 / 300" style="font-size:11px; color:rgba(255,255,255,0.7); margin-top:4px; letter-spacing:1px;" />
+
+            <!-- Indicador de Fase -->
+            <ui:VisualElement name="phase-indicator" style="flex-direction:row; align-items:center; margin-top:4px; display:none;">
+                <ui:VisualElement name="phase-dot-1" style="width:8px; height:8px; border-radius:4px; background-color:rgb(255,215,0); margin-left:4px; margin-right:4px;" />
+                <ui:VisualElement name="phase-dot-2" style="width:8px; height:8px; border-radius:4px; background-color:rgba(255,215,0,0.3); margin-left:4px; margin-right:4px;" />
+                <ui:Label text="FASE 2" name="phase-label" style="font-size:10px; color:rgba(255,80,80,0.8); -unity-font-style:bold; letter-spacing:2px; display:none; margin-left:6px;" />
+            </ui:VisualElement>
+
+        </ui:VisualElement>
+
+    </ui:VisualElement>
+</ui:UXML>

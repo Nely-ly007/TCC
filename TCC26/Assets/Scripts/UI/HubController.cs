@@ -78,6 +78,8 @@ public class HubController : MonoBehaviour
     [Header("Áudio")]
     [SerializeField] private AudioClip hubMusic;
     [SerializeField] private float hubBPM = 95f;
+    [SerializeField] private bool loopHubMusic = true;
+
 
     // ── ESTADO ───────────────────────────────────────────────────
     private bool mapOpen      = false;
@@ -150,7 +152,22 @@ public class HubController : MonoBehaviour
         player = PlayerController.Instance?.transform;
 
         if (hubMusic != null)
-            RhythmManager.Instance?.StartMusic(hubMusic, hubBPM);
+        {
+            if (RhythmManager.Instance != null)
+            {
+                RhythmManager.Instance.StartMusic(hubMusic, hubBPM);
+
+                // Garante que a música do Hub fique em loop
+                AudioSource rhythmAudio =
+                    RhythmManager.Instance.GetComponent<AudioSource>();
+
+                if (rhythmAudio != null)
+                {
+                    rhythmAudio.loop = loopHubMusic;
+                }
+            }
+        }
+
 
         SetupPhaseButtons();
         RefreshFragmentDisplay();

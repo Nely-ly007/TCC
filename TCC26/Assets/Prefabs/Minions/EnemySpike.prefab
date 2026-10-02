@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &4933821102775095242
+--- !u!1 &5268395570073811611
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,41 +8,42 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 6333763525252863949}
-  - component: {fileID: 5898387743040544648}
-  - component: {fileID: 6669954488252723108}
-  - component: {fileID: 7598400145235812688}
-  - component: {fileID: 6985676346364145735}
-  m_Layer: 0
-  m_Name: notaAtack_0
-  m_TagString: Untagged
+  - component: {fileID: 8090900463539248298}
+  - component: {fileID: 810326847561666919}
+  - component: {fileID: 5270647071030912404}
+  - component: {fileID: 8673044298751249043}
+  - component: {fileID: 7296915675349204892}
+  - component: {fileID: 9212031711088522355}
+  m_Layer: 6
+  m_Name: EnemySpike
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &6333763525252863949
+--- !u!4 &8090900463539248298
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4933821102775095242}
+  m_GameObject: {fileID: 5268395570073811611}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.4461, y: -0.114, z: 0}
-  m_LocalScale: {x: 0.048653595, y: 0.048653595, z: 0.048653595}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 18.5, y: -12.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &5898387743040544648
+--- !u!212 &810326847561666919
 SpriteRenderer:
   serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4933821102775095242}
+  m_GameObject: {fileID: 5268395570073811611}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -84,45 +85,30 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 4367158043580474674, guid: b6e74f6c8d50e744fb4549189bdc176c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b83d3789c55a2a44daab4d0417b4658b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 4.68, y: 6.62}
+  m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
   m_BlendShapeWeights: []
---- !u!114 &6669954488252723108
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4933821102775095242}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bead08ef8d91d5e469d28dcdc68feeee, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MusicProjectile
-  speed: 10
-  lifetime: 1.5
-  hitEffect: {fileID: 0}
---- !u!50 &7598400145235812688
+--- !u!50 &5270647071030912404
 Rigidbody2D:
   serializedVersion: 5
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4933821102775095242}
+  m_GameObject: {fileID: 5268395570073811611}
   m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 0.0001
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 0
@@ -135,15 +121,15 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 1
+  m_CollisionDetection: 0
   m_Constraints: 0
---- !u!61 &6985676346364145735
-BoxCollider2D:
+--- !u!58 &8673044298751249043
+CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4933821102775095242}
+  m_GameObject: {fileID: 5268395570073811611}
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
@@ -171,15 +157,61 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.06637609, y: 0.13279343}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 4.68, y: 6.62}
-    newSize: {x: 4.68, y: 6.62}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Size: {x: 4.547247, y: 6.442237}
-  m_EdgeRadius: 0
+  m_Offset: {x: 0.5, y: 0.39893293}
+  m_Radius: 0.89893293
+--- !u!95 &7296915675349204892
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5268395570073811611}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &9212031711088522355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5268395570073811611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a211c986152ab74686b6c817063d575, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemySpeakerSpike
+  maxHP: 30
+  contactDamage: 15
+  moveSpeed: 2
+  detectionRange: 8
+  attackRange: 1.5
+  vinylDropPrefab: {fileID: 6073174224344134264, guid: 5e1778bacacd6c843b1bda46251835a5, type: 3}
+  musicNotePrefab: {fileID: 0}
+  healDropChance: 0.3
+  vinylDropAmount: 1
+  attackOnBeat: 1
+  attackOnBeatNumber: 2
+  attackSFX: {fileID: 0}
+  damageSFX: {fileID: 0}
+  deathSFX: {fileID: 0}
+  spikesTransform: {fileID: 8090900463539248298}
+  spikeExtendScale: 1.4
+  spikeRetractScale: 0.5
+  extendDuration: 0.08
+  retractDuration: 0.15
+  moveHorizontally: 1
+  moveDistance: 2
+  moveSpeed: 1.5
