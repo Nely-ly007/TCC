@@ -1478,8 +1478,9 @@ MonoBehaviour:
   settingsUI: {fileID: 65611146}
   creditsUI: {fileID: 1119573632}
   beatIndicator: {fileID: 1678136558}
-  menuMusic: {fileID: 8300000, guid: 6f8f9b6ab6c76394ba28839ed1879cea, type: 3}
+  menuMusic: {fileID: 0}
   menuBPM: 0
+  loopMenuMusic: 1
   versionText: {fileID: 1670499032}
   version: v1.0
 --- !u!1 &1670499031

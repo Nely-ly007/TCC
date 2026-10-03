@@ -1,67 +1,97 @@
 using UnityEngine;
 using System.Collections;
 
-
 /// <summary>
-/// POP ADVENTURE - CollectibleVinyl
-/// Vinis B&W: moeda do jogo.
+/// Colecionável de Vinil.
+/// Ao ser coletado, adiciona vinis ao GameManager.
+/// Também possui efeito de rotação, flutuação e atração pelo jogador.
 /// </summary>
 public class CollectibleVinyl : MonoBehaviour
 {
+    [Header("Vinyl")]
     [SerializeField] private int value = 1;
+
+    [Header("Attraction")]
     [SerializeField] private float attractRadius = 2f;
     [SerializeField] private float attractSpeed = 8f;
+
+    [Header("Audio")]
     [SerializeField] private AudioClip collectSFX;
+
+    [Header("Animation")]
+    [SerializeField] private float rotationSpeed = 120f;
+    [SerializeField] private float bobHeight = 0.1f;
+    [SerializeField] private float bobSpeed = 3f;
 
     private bool isCollected;
     private Transform player;
+    private Vector3 startPosition;
 
-    void Start()
+    private void Start()
     {
         player = PlayerController.Instance?.transform;
-        // Rotação contínua (efeito visual de vinil)
+        startPosition = transform.position;
+
         StartCoroutine(RotateAndBob());
     }
 
-    void Update()
+    private void Update()
     {
-        if (player == null || isCollected) return;
+        if (player == null || isCollected)
+            return;
 
-        float dist = Vector2.Distance(transform.position, player.position);
-        if (dist < attractRadius)
+        float distance = Vector2.Distance(transform.position, player.position);
+
+        if (distance < attractRadius)
         {
-            // Atrai em direção ao player (magnetismo)
             transform.position = Vector2.MoveTowards(
                 transform.position,
                 player.position,
-                attractSpeed * Time.deltaTime);
+                attractSpeed * Time.deltaTime
+            );
         }
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        if (isCollected || !other.CompareTag("Player")) return;
-        Collect();
-    }
+        if (isCollected)
+            return;
 
-    private void Collect()
-    {
+        if (!other.CompareTag("Player"))
+            return;
+
         isCollected = true;
+
         GameManager.Instance?.AddVinyls(value);
+
         if (collectSFX != null)
-            AudioSource.PlayClipAtPoint(collectSFX, transform.position);
+        {
+            AudioSource.PlayClipAtPoint(
+                collectSFX,
+                transform.position
+            );
+        }
+
         Destroy(gameObject);
     }
 
     private IEnumerator RotateAndBob()
     {
-        float t = 0;
-        Vector3 startPos = transform.position;
-        while (true)
+        float time = 0f;
+
+        while (!isCollected)
         {
-            t += Time.deltaTime;
-            transform.Rotate(Vector3.forward, 120f * Time.deltaTime);
-            transform.position = startPos + Vector3.up * Mathf.Sin(t * 3f) * 0.1f;
+            time += Time.deltaTime;
+
+            transform.Rotate(
+                Vector3.forward,
+                rotationSpeed * Time.deltaTime
+            );
+
+            transform.position =
+                startPosition +
+                Vector3.up * Mathf.Sin(time * bobSpeed) * bobHeight;
+
             yield return null;
         }
     }

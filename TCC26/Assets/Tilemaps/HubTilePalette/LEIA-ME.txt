@@ -1,0 +1,10 @@
+HUB / PORAO TILE PALETTE - Unity 2D
+Grid: 1 celula = 64x64 px = 1 unidade (Pixels Per Unit = 64)
+
+INSTALAR
+1. Copie a pasta HubTilePalette para dentro de Assets/ (pode ser em subpasta).
+2. Tools > Hub Tile Palette > 1. Construir Tudo
+3. Window > 2D > Tile Palette > escolha "HubPalette_Auto".
+
+COLISAO: Grid em 01/02 | Sprite em 06,07,08 | None no resto.
+LAYERS: Fundo(-10):03 | Decor(-5):04,05 | Chao(0):01,02,08 | Moveis/Perigos(1):06,07 | Itens(2):09

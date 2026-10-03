@@ -8365,11 +8365,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2142099166751942903, guid: 079e4f072b7e92a4faa24f162ec96b7b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 25.16
+      value: 27.37
       objectReference: {fileID: 0}
     - target: {fileID: 2142099166751942903, guid: 079e4f072b7e92a4faa24f162ec96b7b, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -13
+      value: -13.12
       objectReference: {fileID: 0}
     - target: {fileID: 2142099166751942903, guid: 079e4f072b7e92a4faa24f162ec96b7b, type: 3}
       propertyPath: m_LocalPosition.z
@@ -8914,11 +8914,11 @@ PrefabInstance:
       objectReference: {fileID: 1837444775}
     - target: {fileID: 6178019933690698122, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 35.52
+      value: 104.82
       objectReference: {fileID: 0}
     - target: {fileID: 6178019933690698122, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -13.5
+      value: -9.52
       objectReference: {fileID: 0}
     - target: {fileID: 6178019933690698122, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
       propertyPath: m_LocalPosition.z
@@ -8957,7 +8957,8 @@ PrefabInstance:
       value: BossDonna
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 7618727948143911402, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
@@ -12264,7 +12265,7 @@ Transform:
   m_GameObject: {fileID: 1837444774}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 34.12, y: -12.79, z: 0}
+  m_LocalPosition: {x: 104.07, y: -8.55, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

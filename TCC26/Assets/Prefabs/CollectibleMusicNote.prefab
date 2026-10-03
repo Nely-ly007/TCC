@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8956661855341560429}
   - component: {fileID: 794751039448050459}
   - component: {fileID: 1214835050311754198}
-  - component: {fileID: 367319619393829940}
+  - component: {fileID: 655321710033561278}
   m_Layer: 0
   m_Name: CollectibleMusicNote
   m_TagString: Untagged
@@ -37,7 +37,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &8956661855341560429
 SpriteRenderer:
-  serializedVersion: 2
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -94,6 +94,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+  m_BlendShapeWeights: []
 --- !u!58 &794751039448050459
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -157,7 +158,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &367319619393829940
+--- !u!114 &655321710033561278
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -171,3 +172,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CollectibleMusicNote
   healAmount: 15
   collectSFX: {fileID: 0}
+  floatSpeed: 0.5

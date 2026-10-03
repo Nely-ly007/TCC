@@ -79,7 +79,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: -3915753820301010557, guid: 2ddbae64ccf228a49951ed5a98056238, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -932,19 +932,19 @@ MonoBehaviour:
   skateDamage: 15
   shockwaveDamage: 15
   skateSpeed: 6
-  bossArenaWidth: 12
-  moveSpeed: 3
-  leftBound: {fileID: 0}
-  rightBound: {fileID: 0}
+  skateSpawnPoint: {fileID: 0}
+  waveSpawnPoint: {fileID: 0}
   musicNoteHealPrefab: {fileID: 479412998634899909, guid: 079e4f072b7e92a4faa24f162ec96b7b, type: 3}
   maxHealDrops: 2
+  goldenDiscFragmentPrefab: {fileID: 0}
   phase1Music: {fileID: 0}
   phase2Music: {fileID: 0}
   attackSFX: {fileID: 0}
-  damageSFX: {fileID: 0}
+  hurtSFX: {fileID: 0}
   deathSFX: {fileID: 0}
-  discoParticles: {fileID: 0}
-  goldenDiscFragmentPrefab: {fileID: 0}
+  phase2SFX: {fileID: 0}
+  phase2Effect: {fileID: 0}
+  bossHPUI: {fileID: 0}
 --- !u!1 &7070570862608105518
 GameObject:
   m_ObjectHideFlags: 0

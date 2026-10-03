@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 143770147942740101}
   - component: {fileID: 6743468215761689849}
   - component: {fileID: 6171147397778782581}
-  - component: {fileID: 4912910667818818897}
+  - component: {fileID: 2745421426095205807}
   m_Layer: 0
   m_Name: CollectibleVinyl
   m_TagString: Untagged
@@ -158,7 +158,7 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &4912910667818818897
+--- !u!114 &2745421426095205807
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -174,3 +174,6 @@ MonoBehaviour:
   attractRadius: 2
   attractSpeed: 8
   collectSFX: {fileID: 0}
+  rotationSpeed: 120
+  bobHeight: 0.1
+  bobSpeed: 3
