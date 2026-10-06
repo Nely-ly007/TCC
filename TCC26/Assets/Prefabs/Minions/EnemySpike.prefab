@@ -157,8 +157,8 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.5, y: 0.39893293}
-  m_Radius: 0.89893293
+  m_Offset: {x: 0.5, y: 0.3714924}
+  m_Radius: 0.8714924
 --- !u!95 &7296915675349204892
 Animator:
   serializedVersion: 7
@@ -195,23 +195,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpeakerSpike
   maxHP: 30
   contactDamage: 15
-  moveSpeed: 2
-  detectionRange: 8
-  attackRange: 1.5
-  vinylDropPrefab: {fileID: 6073174224344134264, guid: 5e1778bacacd6c843b1bda46251835a5, type: 3}
-  musicNotePrefab: {fileID: 0}
-  healDropChance: 0.3
-  vinylDropAmount: 1
-  attackOnBeat: 1
-  attackOnBeatNumber: 2
-  attackSFX: {fileID: 0}
-  damageSFX: {fileID: 0}
-  deathSFX: {fileID: 0}
-  spikesTransform: {fileID: 8090900463539248298}
-  spikeExtendScale: 1.4
-  spikeRetractScale: 0.5
-  extendDuration: 0.08
-  retractDuration: 0.15
   moveHorizontally: 1
-  moveDistance: 2
   moveSpeed: 1.5
+  moveRange: 3
+  pulseScaleAmount: 0.15
+  pulseReturnSpeed: 8
+  dropPrefab: {fileID: 479412998634899909, guid: 079e4f072b7e92a4faa24f162ec96b7b, type: 3}
+  dropChance: 0.5
