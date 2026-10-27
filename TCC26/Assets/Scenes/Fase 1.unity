@@ -611,10 +611,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhaseExit
   bossRef: {fileID: 1386637766}
-  spriteClosed: {fileID: 0}
-  spriteOpen: {fileID: 0}
-  openSFX: {fileID: 0}
-  enterSFX: {fileID: 0}
+  spriteClosed: {fileID: 21300000, guid: 057c30c4c05ba3148989b0490fc004a4, type: 3}
+  spriteOpen: {fileID: 21300000, guid: 69455f2a34c2d24458fee3c2d01bff1a, type: 3}
+  openSFX: {fileID: 8300000, guid: aca07947a4e3adc45b515caf83a1ce8a, type: 3}
+  enterSFX: {fileID: 8300000, guid: 053d7402faf9e8a4d803b1d9000fb2ad, type: 3}
   openEffect: {fileID: 0}
   interactPrompt: {fileID: 1264715151}
   openDelay: 2
@@ -9187,7 +9187,7 @@ Transform:
   m_GameObject: {fileID: 866297765}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 103.1, y: -9.02, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9643,7 +9643,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1642633389076071709, guid: 4a9c869b3c74d3e458f1bb9d067370d9, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 89.503
+      value: 89.496
       objectReference: {fileID: 0}
     - target: {fileID: 1642633389076071709, guid: 4a9c869b3c74d3e458f1bb9d067370d9, type: 3}
       propertyPath: m_LocalPosition.y
@@ -10765,7 +10765,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 192, y: -116}
+  m_AnchoredPosition: {x: 170, y: -83}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1264715153
@@ -10815,8 +10815,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 30
+  m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -10854,7 +10854,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: -203.13293, w: 0}
+  m_margin: {x: 0, y: 0, z: -311.55908, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -10974,6 +10974,10 @@ PrefabInstance:
       propertyPath: phase1Music
       value: 
       objectReference: {fileID: 8300000, guid: 9ec25e178b71065488c9351974a41f74, type: 3}
+    - target: {fileID: 4951861676069381690, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
+      propertyPath: phase2Music
+      value: 
+      objectReference: {fileID: 8300000, guid: 56846290e39926f48a050588f0d7e322, type: 3}
     - target: {fileID: 4951861676069381690, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
       propertyPath: goldenDiscFragmentPrefab
       value: 
@@ -14700,7 +14704,7 @@ Transform:
   m_GameObject: {fileID: 1837444774}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 104.07, y: -8.55, z: 0}
+  m_LocalPosition: {x: 104.23, y: -8.55, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -15323,11 +15327,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1642633389076071709, guid: 4a9c869b3c74d3e458f1bb9d067370d9, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 14.558
+      value: 14.555
       objectReference: {fileID: 0}
     - target: {fileID: 1642633389076071709, guid: 4a9c869b3c74d3e458f1bb9d067370d9, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -13.467
+      value: -13.497
       objectReference: {fileID: 0}
     - target: {fileID: 1642633389076071709, guid: 4a9c869b3c74d3e458f1bb9d067370d9, type: 3}
       propertyPath: m_LocalPosition.z

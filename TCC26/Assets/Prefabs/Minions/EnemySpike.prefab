@@ -194,7 +194,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpeakerSpike
   maxHP: 30
-  contactDamage: 15
+  contactDamage: 20
   moveHorizontally: 1
   moveSpeed: 1.5
   moveRange: 3
