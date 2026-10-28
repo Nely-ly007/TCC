@@ -4,12 +4,16 @@ using UnityEngine;
 namespace PopAdventure.Hive
 {
     /// <summary>
-    /// Plataforma que liga/desliga no ritmo. pattern: '1' = sólida, qualquer outro = some; 1 caractere = 1 batida.
+    /// Plataforma que liga/desliga no ritmo. pattern: '1' = sólida, qualquer outro = some; 1 caractere = StepBeats batidas
+    /// (padrão 2 = meio tempo; HiveLevelBootstrap ▸ Beat Platform Step. 1 = 1 caractere por batida, o modo difícil).
     /// Telegrafia: pisca na segunda metade da batida antes de sumir; fantasma brilha antes de aparecer.
     /// É "one-way": dá para pular de baixo para cima, então nunca prende o jogador.
     /// </summary>
     public class HiveBeatPlatform : MonoBehaviour
     {
+        /// <summary>Batidas por caractere do pattern. Definido pelo HiveLevelBootstrap.</summary>
+        public static int StepBeats = 2;
+
         private BoxCollider2D col;
         private SpriteRenderer sr;
         private Transform visual;
@@ -55,6 +59,7 @@ namespace PopAdventure.Hive
             if (!ready) return;
 
             double sb = HiveBeatDriver.Running ? HiveBeatDriver.SongBeat : 0.0;
+            sb /= Math.Max(1, StepBeats);
             long idx = (long)Math.Floor(sb);
             if (idx < 0) idx = 0;
             float frac = sb < 0.0 ? 0f : HiveMath.Frac(sb);

@@ -47,6 +47,8 @@ namespace PopAdventure.Hive
         public float bossSpriteScale = 1f;
 
         [Header("Balanceamento")]
+        [Tooltip("Velocidade das plataformas de ritmo: batidas por caractere do pattern. 1 = rápido (difícil), 2 = meio tempo (padrão, mais fácil), 4 = bem lento.")]
+        [Range(1, 4)] public int beatPlatformStep = 2;
         public int pitDamage = 15;
         [Tooltip("Distância (unidades) em que o vinil começa a ser puxado até o Player. 0 = sem ímã (só coleta encostando).")]
         public float vinylMagnet = 0.9f;
@@ -84,6 +86,7 @@ namespace PopAdventure.Hive
             Instance = this;
             BossActive = false;
 
+            HiveBeatPlatform.StepBeats = Mathf.Clamp(beatPlatformStep, 1, 4);
             HivePickup.VinylMagnet = Mathf.Max(0f, vinylMagnet);
             HivePickup.NoteMagnet = Mathf.Max(0f, noteMagnet);
 
