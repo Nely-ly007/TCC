@@ -33,8 +33,25 @@ namespace PopAdventure.Hive
         public bool handlePlayerDeath = true;
         public float deathDelay = 1.0f;
 
+        [Header("Compatibilidade com o seu Player (pulo)")]
+        [Tooltip("Layer aplicada ao chão/plataformas da fase (Tilemaps Ground e Platforms, blocos de teste e plataformas criadas). " +
+                 "Deve ser a MESMA layer que o Ground Check do seu PlayerController aceita. Vazio = não mexe. A layer precisa existir em Edit ▸ Project Settings ▸ Tags and Layers.")]
+        public string groundLayerName = "Ground";
+        [Tooltip("Tag aplicada ao chão/plataformas, se o seu Player checa o chão por tag (ex.: Ground). Vazio = não mexe. A tag precisa existir em Tags and Layers.")]
+        public string groundTag = "";
+
+        [Header("Boss (visual próprio)")]
+        [Tooltip("Arraste aqui o sprite do seu boss (um frame do sprite recortado). Vazio = usa a Rainha desenhada por código. Troca só o visual; ataques, vida e fases continuam iguais.")]
+        public Sprite bossSprite;
+        [Tooltip("Tamanho do sprite do boss. Ajuste até ele ficar com ~3 unidades de altura.")]
+        public float bossSpriteScale = 1f;
+
         [Header("Balanceamento")]
         public int pitDamage = 15;
+        [Tooltip("Distância (unidades) em que o vinil começa a ser puxado até o Player. 0 = sem ímã (só coleta encostando).")]
+        public float vinylMagnet = 0.9f;
+        [Tooltip("Distância em que a nota de cura é puxada. 0 = sem ímã.")]
+        public float noteMagnet = 0.7f;
 
         private Transform dynamicRoot;
         private Transform gPlatforms, gHazards, gPickups, gEnemies, gCheckpoints, gBoss, gMisc;
@@ -66,6 +83,9 @@ namespace PopAdventure.Hive
             }
             Instance = this;
             BossActive = false;
+
+            HivePickup.VinylMagnet = Mathf.Max(0f, vinylMagnet);
+            HivePickup.NoteMagnet = Mathf.Max(0f, noteMagnet);
 
             // música em 4 seções: se a cena não tem HiveMusic mas existem os .wav em Resources/Hive, cria sozinho
             if (autoMusic) HiveMusic.EnsureExists();
@@ -103,6 +123,7 @@ namespace PopAdventure.Hive
                 HivePlayerStatus.For(player);
 
             BuildFromMarkers();
+            ApplyGroundToTilemaps();
 
             if (spawnBackdrop) HiveBackdrop.Create();
             if (spawnOverlay) HiveOverlay.Create();
@@ -171,6 +192,57 @@ namespace PopAdventure.Hive
             return go;
         }
 
+        // ============================================================ Layer/tag do chão (para o pulo do seu Player)
+
+        private bool warnedLayer, warnedTag;
+
+        private void ApplyGround(GameObject go)
+        {
+            if (go == null) return;
+            if (!string.IsNullOrEmpty(groundLayerName))
+            {
+                int layer = LayerMask.NameToLayer(groundLayerName);
+                if (layer >= 0) SetLayerDeep(go.transform, layer);
+                else if (!warnedLayer)
+                {
+                    warnedLayer = true;
+                    Debug.LogWarning("[Hive] A layer '" + groundLayerName + "' não existe. Crie em Edit ▸ Project Settings ▸ Tags and Layers " +
+                                     "(ou escreva em HiveLevelBootstrap ▸ Ground Layer Name a layer que o Ground Check do seu Player usa). " +
+                                     "Sem isso o Player pode não detectar o chão e não pular.");
+                }
+            }
+            if (!string.IsNullOrEmpty(groundTag))
+            {
+                try { go.tag = groundTag; }
+                catch (UnityException)
+                {
+                    if (!warnedTag)
+                    {
+                        warnedTag = true;
+                        Debug.LogWarning("[Hive] A tag '" + groundTag + "' não existe. Crie em Tags and Layers ou deixe Ground Tag vazio.");
+                    }
+                }
+            }
+        }
+
+        private static void SetLayerDeep(Transform t, int layer)
+        {
+            t.gameObject.layer = layer;
+            for (int i = 0; i < t.childCount; i++) SetLayerDeep(t.GetChild(i), layer);
+        }
+
+        /// <summary>Tilemaps "Ground" e "Platforms" (os que você pinta) também ganham a layer/tag do chão.</summary>
+        private void ApplyGroundToTilemaps()
+        {
+            var grid = FindFirstObjectByType<Grid>();
+            if (grid == null) return;
+            for (int i = 0; i < grid.transform.childCount; i++)
+            {
+                var c = grid.transform.GetChild(i);
+                if (c.name == "Ground" || c.name == "Platforms") ApplyGround(c.gameObject);
+            }
+        }
+
         // ============================================================ Marcadores → objetos
 
         private void BuildFromMarkers()
@@ -220,16 +292,19 @@ namespace PopAdventure.Hive
                 case HiveMarkerType.BeatPlatform:
                     go = NewObj("BeatPlatform", gPlatforms, pos);
                     go.AddComponent<HiveBeatPlatform>().Init(m.size, m.pattern, m.offset, m.tier);
+                    ApplyGround(go);
                     break;
 
                 case HiveMarkerType.MovingPlatform:
                     go = NewObj("MovingPlatform", gPlatforms, pos);
                     go.AddComponent<HiveMovingPlatform>().Init(m.size, m.travel, m.beats, m.offset);
+                    ApplyGround(go);
                     break;
 
                 case HiveMarkerType.CrumblePlatform:
                     go = NewObj("CrumblePlatform", gPlatforms, pos);
                     go.AddComponent<HiveCrumblePlatform>().Init(m.size, m.beats, m.count);
+                    ApplyGround(go);
                     break;
 
                 case HiveMarkerType.HoneyPool:
@@ -303,6 +378,7 @@ namespace PopAdventure.Hive
             var go = NewObj("Blockout", gMisc, pos);
             var col = go.AddComponent<BoxCollider2D>();
             col.size = m.size;
+            ApplyGround(go);
 
             HiveBlockStyle style = m.tier == 1 ? HiveBlockStyle.Platform :
                                    (m.tier == 2 ? HiveBlockStyle.Gold : HiveBlockStyle.Ground);

@@ -33,6 +33,7 @@ namespace PopAdventure.Hive
         private Transform visual;
         private SpriteRenderer body;
         private Transform wingA, wingB;
+        private float spriteScale = 1f;   // multiplicador do sprite personalizado (HiveLevelBootstrap ▸ Boss Sprite Scale)
 
         private float minX, maxX, floorY, ceilY, centerX, hoverY, restY;
         private Vector2 pos, vel;
@@ -84,6 +85,16 @@ namespace PopAdventure.Hive
 
             wingA = MakeWing(-0.35f, 0.95f, 9, 2.1f);
             wingB = MakeWing(0.15f, 1.05f, 11, 2.3f);
+
+            // sprite próprio do boss (HiveLevelBootstrap ▸ Boss Sprite): troca só o visual, o comportamento é o mesmo
+            var boot = HiveLevelBootstrap.Instance;
+            if (boot != null && boot.bossSprite != null)
+            {
+                body.sprite = boot.bossSprite;
+                spriteScale = Mathf.Max(0.05f, boot.bossSpriteScale);
+                foreach (var wr in visual.GetComponentsInChildren<SpriteRenderer>())
+                    if (wr != body) wr.enabled = false;
+            }
         }
 
         private Transform MakeWing(float x, float y, int order, float scale)
@@ -423,7 +434,7 @@ namespace PopAdventure.Hive
 
             squashCur = Mathf.Lerp(squashCur, squashTarget, 10f * dt);
             float pulse = 1f + 0.04f * HiveBeatDriver.Pulse;
-            visual.localScale = new Vector3(flip * squashCur * pulse, squashCur * pulse, 1f);
+            visual.localScale = new Vector3(flip * squashCur * pulse * spriteScale, squashCur * pulse * spriteScale, 1f);
             hurt.radius = BodyRadius * squashCur;
 
             // cor (o flash de dano em HiveDamageable.LateUpdate sobrepõe durante o hit)

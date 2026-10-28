@@ -13,6 +13,10 @@ namespace PopAdventure.Hive
         /// <summary>Vinis de marcador contam no total da fase; drops de inimigos são bônus.</summary>
         public bool countsInTotal = true;
 
+        /// <summary>Raio do ímã (unidades). Definidos pelo HiveLevelBootstrap (Vinyl Magnet / Note Magnet).</summary>
+        public static float VinylMagnet = 0.9f;
+        public static float NoteMagnet = 0.7f;
+
         private HivePickupType type;
         private int value = 1;
         private bool falls;
@@ -66,12 +70,12 @@ namespace PopAdventure.Hive
             {
                 case HivePickupType.Vinyl:
                     sr.sprite = HiveSpriteFactory.Vinyl();
-                    baseScale = 0.7f; col.radius = 0.4f; magnet = 2.4f;
+                    baseScale = 0.7f; col.radius = 0.4f; magnet = VinylMagnet;
                     glow.color = new Color(1f, 1f, 1f, 0.22f); glow.transform.localScale = Vector3.one * 1.3f;
                     break;
                 case HivePickupType.Heal:
                     sr.sprite = HiveSpriteFactory.Note();
-                    baseScale = 0.85f; col.radius = 0.45f; magnet = 1.8f;
+                    baseScale = 0.85f; col.radius = 0.45f; magnet = NoteMagnet;
                     glow.color = new Color(HivePalette.Pink.r, HivePalette.Pink.g, HivePalette.Pink.b, 0.35f);
                     glow.transform.localScale = Vector3.one * 1.8f;
                     break;
@@ -117,7 +121,7 @@ namespace PopAdventure.Hive
                 float d = to.magnitude;
                 if (d < magnet)
                 {
-                    float sp = Mathf.Lerp(3f, 14f, 1f - d / magnet);
+                    float sp = Mathf.Lerp(2f, 9f, 1f - d / magnet);
                     transform.position += (Vector3)(to.normalized * sp * dt);
                     basePos = transform.position;
                 }
