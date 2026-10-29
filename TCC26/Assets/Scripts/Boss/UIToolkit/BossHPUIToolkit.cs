@@ -3,17 +3,15 @@ using UnityEngine.UIElements;
 using System.Collections;
 
 /// <summary>
-/// POP ADVENTURE - BossHPUIToolkit
-/// Barra de HP do boss em UI Toolkit.
+/// POP ADVENTURE - BossHPUIToolkit v2
+/// Fix: root pode estar null quando Show() é chamado antes de OnEnable().
+/// Adicionado InitRoot() chamado em Awake + OnEnable para garantir referências.
 ///
 /// Setup:
 /// 1. Crie um GameObject "BossHPUI" na cena da fase
 /// 2. Add Component: UIDocument → Source: BossHPPanel.uxml
 /// 3. Add Component: BossHPUIToolkit
-/// 4. No BossDonna.cs, substitua as referências uGUI por este script:
-///    BossHPUIToolkit.Instance?.Show()
-///    BossHPUIToolkit.Instance?.UpdateHP(current, max)
-///    BossHPUIToolkit.Instance?.Hide()
+/// 4. Vincule no Inspector do BossDonna (campo bossHPUI)
 /// </summary>
 [RequireComponent(typeof(UIDocument))]
 public class BossHPUIToolkit : MonoBehaviour
@@ -23,7 +21,7 @@ public class BossHPUIToolkit : MonoBehaviour
     [Header("Dados do Boss")]
     [SerializeField] private string bossDisplayName = "DONNA";
 
-    // Elementos
+    private UIDocument  uiDoc;
     private VisualElement root;
     private VisualElement barFill;
     private Label         hpText;
@@ -32,22 +30,45 @@ public class BossHPUIToolkit : MonoBehaviour
     private VisualElement phaseDot2;
     private Label         phaseLabel;
 
-    // Estado
-    private int   maxHP;
-    private bool  isPhase2 = false;
+    private int  maxHP;
+    private bool isPhase2 = false;
     private Coroutine damageFlashCoroutine;
 
     public bool IsVisible { get; private set; } = false;
 
+    // ── INIT ─────────────────────────────────────────────────────
     void Awake()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
         Instance = this;
+
+        uiDoc = GetComponent<UIDocument>();
+        InitRoot(); // tenta inicializar já no Awake
     }
 
     void OnEnable()
     {
-        root           = GetComponent<UIDocument>().rootVisualElement;
+        InitRoot(); // garante referências se Awake não conseguiu
+    }
+
+    /// <summary>
+    /// Busca e guarda todos os elementos visuais do UXML.
+    /// Seguro chamar múltiplas vezes.
+    /// </summary>
+    private void InitRoot()
+    {
+        if (uiDoc == null) uiDoc = GetComponent<UIDocument>();
+        if (uiDoc == null) return;
+
+        var r = uiDoc.rootVisualElement;
+        if (r == null) return;
+
+        root = r;
+
         barFill        = root.Q<VisualElement>("boss-bar-fill");
         hpText         = root.Q<Label>("boss-hp-text");
         bossNameLabel  = root.Q<Label>("boss-name");
@@ -58,18 +79,27 @@ public class BossHPUIToolkit : MonoBehaviour
         if (bossNameLabel != null)
             bossNameLabel.text = bossDisplayName;
 
-        Hide();
+        // Começa escondido
+        root.style.display = DisplayStyle.None;
     }
 
     // ── SHOW / HIDE ───────────────────────────────────────────────
     public void Show(int currentHP, int max)
     {
-        if (root == null) root = GetComponent<UIDocument>().rootVisualElement;
-        maxHP = max;
+        // Garante que root está inicializado (pode ser chamado antes de OnEnable)
+        if (root == null) InitRoot();
+        if (root == null)
+        {
+            Debug.LogWarning("[BossHPUIToolkit] Show() chamado mas root ainda é null. " +
+                             "Verifique se o UIDocument tem o UXML vinculado.");
+            return;
+        }
+
+        maxHP     = max;
         IsVisible = true;
+
         root.style.display = DisplayStyle.Flex;
 
-        // Mostra o indicador de fase
         if (phaseIndicator != null)
             phaseIndicator.style.display = DisplayStyle.Flex;
 
@@ -87,47 +117,43 @@ public class BossHPUIToolkit : MonoBehaviour
     // ── ATUALIZAR HP ─────────────────────────────────────────────
     public void UpdateHP(int current, int max)
     {
+        if (root == null) InitRoot();
         if (barFill == null) return;
 
         maxHP = max;
         float pct = max > 0 ? (float)current / max : 0f;
 
-        // Largura da barra com transição suave
         barFill.style.width = Length.Percent(pct * 100f);
 
-        // Texto
         if (hpText != null)
             hpText.text = $"{current} / {max}";
 
-        // Cor da barra conforme HP
+        // Cor da barra por % de vida
         if (pct > 0.5f)
-            barFill.style.backgroundColor = new StyleColor(new Color(0.86f, 0.20f, 0.31f)); // vermelho
+            barFill.style.backgroundColor = new StyleColor(new Color(0.86f, 0.20f, 0.31f));
         else if (pct > 0.25f)
-            barFill.style.backgroundColor = new StyleColor(new Color(0.86f, 0.55f, 0.10f)); // laranja
+            barFill.style.backgroundColor = new StyleColor(new Color(0.86f, 0.55f, 0.10f));
         else
-            barFill.style.backgroundColor = new StyleColor(new Color(0.86f, 0.10f, 0.10f)); // vermelho escuro
+            barFill.style.backgroundColor = new StyleColor(new Color(0.86f, 0.10f, 0.10f));
 
-        // Flash de dano
-        if (damageFlashCoroutine != null) StopCoroutine(damageFlashCoroutine);
+        // Flash da barra ao tomar dano
+        if (damageFlashCoroutine != null)
+            StopCoroutine(damageFlashCoroutine);
         damageFlashCoroutine = StartCoroutine(DamageFlash());
     }
 
-    // ── FASE 2 ───────────────────────────────────────────────────
+    // ── FASE 2 ────────────────────────────────────────────────────
     public void ActivatePhase2()
     {
         if (isPhase2) return;
         isPhase2 = true;
 
-        // Acende o segundo ponto do indicador de fase
         if (phaseDot2 != null)
-            phaseDot2.style.backgroundColor =
-                new StyleColor(new Color(1f, 0.31f, 0.31f)); // vermelho
+            phaseDot2.style.backgroundColor = new StyleColor(new Color(1f, 0.31f, 0.31f));
 
-        // Mostra label "FASE 2"
         if (phaseLabel != null)
             phaseLabel.style.display = DisplayStyle.Flex;
 
-        // Nome do boss fica vermelho
         if (bossNameLabel != null)
             bossNameLabel.style.color = new StyleColor(new Color(1f, 0.31f, 0.31f));
 
@@ -137,8 +163,8 @@ public class BossHPUIToolkit : MonoBehaviour
     // ── ANIMAÇÕES ─────────────────────────────────────────────────
     private IEnumerator EntranceAnimation()
     {
-        // Barra aparece da esquerda
         if (barFill == null) yield break;
+
         barFill.style.width = Length.Percent(0f);
         yield return new WaitForSeconds(0.1f);
 
@@ -146,8 +172,7 @@ public class BossHPUIToolkit : MonoBehaviour
         while (t < 0.6f)
         {
             t += Time.deltaTime;
-            float pct = Mathf.SmoothStep(0f, 1f, t / 0.6f) * 100f;
-            barFill.style.width = Length.Percent(pct);
+            barFill.style.width = Length.Percent(Mathf.SmoothStep(0f, 1f, t / 0.6f) * 100f);
             yield return null;
         }
         barFill.style.width = Length.Percent(100f);
@@ -157,26 +182,23 @@ public class BossHPUIToolkit : MonoBehaviour
     {
         if (barFill == null) yield break;
 
-        // Flash branco rápido
-        var originalColor = barFill.style.backgroundColor;
+        var saved = barFill.style.backgroundColor;
         barFill.style.backgroundColor = new StyleColor(Color.white);
+
         yield return new WaitForSeconds(0.06f);
-        barFill.style.backgroundColor = originalColor;
+
+        barFill.style.backgroundColor = saved;
     }
 
     private IEnumerator Phase2Flash()
     {
-        if (root == null) yield break;
+        if (barFill == null) yield break;
 
-        // Pisca a barra 3 vezes em vermelho
         for (int i = 0; i < 3; i++)
         {
-            if (barFill != null)
-                barFill.style.backgroundColor = new StyleColor(Color.white);
+            barFill.style.backgroundColor = new StyleColor(Color.white);
             yield return new WaitForSeconds(0.1f);
-            if (barFill != null)
-                barFill.style.backgroundColor =
-                    new StyleColor(new Color(1f, 0.31f, 0.31f));
+            barFill.style.backgroundColor = new StyleColor(new Color(1f, 0.31f, 0.31f));
             yield return new WaitForSeconds(0.1f);
         }
     }

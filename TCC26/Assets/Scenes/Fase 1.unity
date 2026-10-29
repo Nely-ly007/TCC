@@ -611,8 +611,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PhaseExit
   bossRef: {fileID: 1386637766}
+  hubSceneName: Hub
   spriteClosed: {fileID: 21300000, guid: 057c30c4c05ba3148989b0490fc004a4, type: 3}
   spriteOpen: {fileID: 21300000, guid: 69455f2a34c2d24458fee3c2d01bff1a, type: 3}
+  closedSortingOrder: 0
+  openSortingOrder: 5
   openSFX: {fileID: 8300000, guid: aca07947a4e3adc45b515caf83a1ce8a, type: 3}
   enterSFX: {fileID: 8300000, guid: 053d7402faf9e8a4d803b1d9000fb2ad, type: 3}
   openEffect: {fileID: 0}
@@ -10979,6 +10982,22 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: 56846290e39926f48a050588f0d7e322, type: 3}
     - target: {fileID: 4951861676069381690, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
+      propertyPath: waveSpawnPoint
+      value: 
+      objectReference: {fileID: 1386637767}
+    - target: {fileID: 4951861676069381690, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
+      propertyPath: shockwavePrefab
+      value: 
+      objectReference: {fileID: 5172457968526278696, guid: 9aceec5e16e63af4186bc7da96fec978, type: 3}
+    - target: {fileID: 4951861676069381690, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
+      propertyPath: skateSpawnPoint
+      value: 
+      objectReference: {fileID: 1386637768}
+    - target: {fileID: 4951861676069381690, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
+      propertyPath: skateProjectilePrefab
+      value: 
+      objectReference: {fileID: 2570864471619808636, guid: 91dddf9dd832db443a8ec9ef19babeee, type: 3}
+    - target: {fileID: 4951861676069381690, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
       propertyPath: goldenDiscFragmentPrefab
       value: 
       objectReference: {fileID: 7505606081988052310, guid: 732b2e31d9f8cb24e879e3aa31d2281f, type: 3}
@@ -11043,6 +11062,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8c5da2ffd3c073448f2d351f660e77b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BossDonna
+--- !u!4 &1386637767 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 354116894429984095, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
+  m_PrefabInstance: {fileID: 1386637765}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1386637768 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5074435930486033062, guid: 39f01c86a7a1eea4a8cc92dade14b8b5, type: 3}
+  m_PrefabInstance: {fileID: 1386637765}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1436649831
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14704,7 +14733,7 @@ Transform:
   m_GameObject: {fileID: 1837444774}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 104.23, y: -8.55, z: 0}
+  m_LocalPosition: {x: 103.92, y: -8.55, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

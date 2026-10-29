@@ -2,11 +2,11 @@ using UnityEngine;
 using System.Collections;
 
 /// <summary>
-/// POP ADVENTURE - BossDonna v2
-/// - Métodos públicos para Animation Events (SpawnSkateEvent, SpawnWaveEvent)
-/// - Triggers de animação integrados
-/// - Hurt animation ao receber dano
-/// - DamageFlash via SpriteRenderers dos filhos (partes separadas)
+/// POP ADVENTURE - BossDonna v3
+/// Fixes:
+/// - Hurt não volta ao idle: ResetTrigger antes de SetTrigger + flag isHurt
+/// - DamageFlash com cor vermelha visível (não branco) + guard contra chamadas simultâneas
+/// - bossHPUI null-safe com busca automática se não vinculado no Inspector
 /// </summary>
 public class BossDonna : MonoBehaviour, IDamageable
 {
@@ -22,8 +22,8 @@ public class BossDonna : MonoBehaviour, IDamageable
     [SerializeField] private int        skateDamage     = 15;
     [SerializeField] private int        shockwaveDamage = 15;
     [SerializeField] private float      skateSpeed      = 6f;
-    [SerializeField] private Transform  skateSpawnPoint; // mão direita
-    [SerializeField] private Transform  waveSpawnPoint;  // centro do corpo
+    [SerializeField] private Transform  skateSpawnPoint;
+    [SerializeField] private Transform  waveSpawnPoint;
 
     // ── DROPS DE CURA ─────────────────────────────────────────────
     [Header("Drops de Cura")]
@@ -49,19 +49,27 @@ public class BossDonna : MonoBehaviour, IDamageable
     [Tooltip("Arraste o GameObject BossHPUI aqui")]
     [SerializeField] private BossHPUIToolkit bossHPUI;
 
+    // ── DAMAGE FLASH ──────────────────────────────────────────────
+    [Header("Damage Flash")]
+    [SerializeField] private Color flashColor    = new Color(1f, 0.2f, 0.2f); // vermelho
+    [SerializeField] private float flashDuration = 0.12f;
+
     // ── ESTADO ───────────────────────────────────────────────────
-    private int         currentHP;
-    private bool        isDead;
-    private bool        isPhase2;
-    private bool        isBossActive;
-    private int         healDropCount = 0;
-    private int         attackPattern = 0;
+    private int  currentHP;
+    private bool isDead;
+    private bool isPhase2;
+    private bool isBossActive;
+    private int  healDropCount = 0;
+    private int  attackPattern = 0;
+    private bool isHurt        = false; // guard: evita Hurt trigger enquanto já está em Hurt
+    private bool isFlashing    = false; // guard: evita flash simultâneo
 
     // ── COMPONENTES ───────────────────────────────────────────────
-    private Animator          anim;
-    private AudioSource       audioSource;
-    private SpriteRenderer[]  bodyParts;   // todas as partes do body
-    private Transform         player;
+    private Animator         anim;
+    private AudioSource      audioSource;
+    private SpriteRenderer[] bodyParts;
+    private Color[]          originalColors;
+    private Transform        player;
 
     // ── EVENTS ───────────────────────────────────────────────────
     public System.Action<int, int> OnHealthChanged;
@@ -72,8 +80,18 @@ public class BossDonna : MonoBehaviour, IDamageable
     {
         anim        = GetComponent<Animator>();
         audioSource = GetComponent<AudioSource>();
-        bodyParts   = GetComponentsInChildren<SpriteRenderer>();
         currentHP   = maxHP;
+
+        // Busca todos SpriteRenderers (incluindo inativos) e salva cores originais
+        bodyParts      = GetComponentsInChildren<SpriteRenderer>(true);
+        originalColors = new Color[bodyParts.Length];
+        for (int i = 0; i < bodyParts.Length; i++)
+            if (bodyParts[i] != null)
+                originalColors[i] = bodyParts[i].color;
+
+        // Se não vinculou no Inspector, tenta encontrar na cena
+        if (bossHPUI == null)
+            bossHPUI = FindObjectOfType<BossHPUIToolkit>();
     }
 
     void Start()
@@ -90,7 +108,6 @@ public class BossDonna : MonoBehaviour, IDamageable
     public void ActivateBoss()
     {
         isBossActive = true;
-
         bossHPUI?.Show(currentHP, maxHP);
 
         if (phase1Music != null)
@@ -126,7 +143,6 @@ public class BossDonna : MonoBehaviour, IDamageable
     {
         anim?.SetTrigger("AttackSkate");
         PlaySFX(attackSFX);
-        // O projétil é instanciado pelo Animation Event no frame 6
         yield return new WaitForSeconds(0.5f);
     }
 
@@ -134,7 +150,6 @@ public class BossDonna : MonoBehaviour, IDamageable
     {
         anim?.SetTrigger("AttackWave");
         PlaySFX(attackSFX);
-        // O projétil é instanciado pelo Animation Event
         yield return new WaitForSeconds(0.5f);
     }
 
@@ -145,13 +160,8 @@ public class BossDonna : MonoBehaviour, IDamageable
         yield return StartCoroutine(SkateAttackCoroutine());
     }
 
-    // ── ANIMATION EVENTS (públicos — chamados pelo Animator) ──────
-
-    /// <summary>
-    /// Coloque um Animation Event no frame 6 de Donna_Attack_Skate
-    /// apontando para este método.
-    /// </summary>
-    /*public void SpawnSkateEvent()
+    // ── ANIMATION EVENTS ─────────────────────────────────────────
+    public void SpawnSkateEvent()
     {
         if (player == null || skateProjectilePrefab == null) return;
 
@@ -165,14 +175,9 @@ public class BossDonna : MonoBehaviour, IDamageable
             : transform.position + Vector3.right;
 
         GameObject obj = Instantiate(skateProjectilePrefab, spawnPos, Quaternion.identity);
-        SkateProjectile sp = obj.GetComponent<SkateProjectile>();
-        sp?.Init(dir, skateSpeed, skateDamage);
+        obj.GetComponent<SkateProjectile>()?.Init(dir, skateSpeed, skateDamage);
     }
 
-    /// <summary>
-    /// Coloque um Animation Event no frame 5 de Donna_Attack_Wave
-    /// apontando para este método.
-    /// </summary>
     public void SpawnWaveEvent()
     {
         if (shockwavePrefab == null) return;
@@ -181,12 +186,21 @@ public class BossDonna : MonoBehaviour, IDamageable
             ? waveSpawnPoint.position
             : transform.position;
 
-        // Onda para esquerda e direita
         var wL = Instantiate(shockwavePrefab, spawnPos + Vector3.left  * 0.5f, Quaternion.identity);
         var wR = Instantiate(shockwavePrefab, spawnPos + Vector3.right * 0.5f, Quaternion.identity);
         wL.GetComponent<Shockwave>()?.Init(Vector2.left,  shockwaveDamage);
         wR.GetComponent<Shockwave>()?.Init(Vector2.right, shockwaveDamage);
-    }*/
+    }
+
+    /// <summary>
+    /// Coloque um Animation Event NO ÚLTIMO FRAME de Donna_Hurt
+    /// apontando para este método. Ele libera o Animator de volta ao Idle.
+    /// </summary>
+    public void OnHurtAnimationEnd()
+    {
+        isHurt = false;
+        anim?.ResetTrigger("Hurt");
+    }
 
     // ── DANO ─────────────────────────────────────────────────────
     public void TakeDamage(int amount)
@@ -198,14 +212,21 @@ public class BossDonna : MonoBehaviour, IDamageable
         bossHPUI?.UpdateHP(currentHP, maxHP);
 
         PlaySFX(hurtSFX);
-        anim?.SetTrigger("Hurt");
-        StartCoroutine(DamageFlash());
 
-        // Drop de cura na metade do HP
+        // Só dispara Hurt se não estiver já em Hurt
+        if (!isHurt)
+        {
+            isHurt = true;
+            anim?.ResetTrigger("Hurt"); // limpa acumulação de triggers
+            anim?.SetTrigger("Hurt");
+        }
+
+        if (!isFlashing)
+            StartCoroutine(DamageFlash());
+
         if (!isPhase2 && currentHP <= maxHP * 0.5f && healDropCount < maxHealDrops)
             TryDropHeal();
 
-        // Transição para fase 2
         if (!isPhase2 && currentHP <= phase2HPThreshold)
             StartCoroutine(EnterPhase2());
 
@@ -243,6 +264,15 @@ public class BossDonna : MonoBehaviour, IDamageable
         isDead       = true;
         isBossActive = false;
 
+        StopCoroutine(nameof(DamageFlash));
+        isFlashing = false;
+        isHurt     = false;
+
+        // Restaura cores antes do fade
+        for (int i = 0; i < bodyParts.Length; i++)
+            if (bodyParts[i] != null)
+                bodyParts[i].color = originalColors[i];
+
         anim?.SetTrigger("Death");
         PlaySFX(deathSFX);
         CameraShake.Instance?.Shake(0.8f, 0.4f);
@@ -251,7 +281,6 @@ public class BossDonna : MonoBehaviour, IDamageable
 
         yield return new WaitForSeconds(2f);
 
-        // Dropa o fragmento
         if (goldenDiscFragmentPrefab != null)
             Instantiate(goldenDiscFragmentPrefab,
                 transform.position + Vector3.up,
@@ -280,22 +309,18 @@ public class BossDonna : MonoBehaviour, IDamageable
     // ── DAMAGE FLASH ─────────────────────────────────────────────
     private IEnumerator DamageFlash()
     {
-        // Salva cores originais
-        Color[] originalColors = new Color[bodyParts.Length];
-        for (int i = 0; i < bodyParts.Length; i++)
-            if (bodyParts[i] != null)
-                originalColors[i] = bodyParts[i].color;
+        isFlashing = true;
 
-        // Flash branco
         foreach (var sr in bodyParts)
-            if (sr != null) sr.color = Color.white;
+            if (sr != null) sr.color = flashColor;
 
-        yield return new WaitForSeconds(0.08f);
+        yield return new WaitForSeconds(flashDuration);
 
-        // Restaura cores
         for (int i = 0; i < bodyParts.Length; i++)
             if (bodyParts[i] != null)
                 bodyParts[i].color = originalColors[i];
+
+        isFlashing = false;
     }
 
     // ── HELPERS ───────────────────────────────────────────────────
@@ -308,9 +333,7 @@ public class BossDonna : MonoBehaviour, IDamageable
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        if (skateSpawnPoint != null)
-            Gizmos.DrawWireSphere(skateSpawnPoint.position, 0.2f);
-        if (waveSpawnPoint != null)
-            Gizmos.DrawWireSphere(waveSpawnPoint.position, 0.3f);
+        if (skateSpawnPoint != null) Gizmos.DrawWireSphere(skateSpawnPoint.position, 0.2f);
+        if (waveSpawnPoint  != null) Gizmos.DrawWireSphere(waveSpawnPoint.position,  0.3f);
     }
 }

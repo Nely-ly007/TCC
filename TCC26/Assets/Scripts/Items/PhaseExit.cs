@@ -1,43 +1,47 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 /// <summary>
-/// POP ADVENTURE - PhaseExit
-/// Porta/portal que abre após o boss ser derrotado.
-/// 
-/// Fluxo completo:
-/// 1. Boss morre → OnBossDefeated dispara
-/// 2. Fragmento dourado aparece no chão
-/// 3. Player coleta o fragmento (CollectibleDiscFragment)
-/// 4. PhaseExit.Open() é chamado → porta abre com animação
-/// 5. Player entra na porta → volta ao Hub com fade
+/// POP ADVENTURE - PhaseExit v3
+/// Fix: fallback robusto para testes no Editor (sem GameManager na cena)
+/// Fix: player fica "dentro" da porta — sorting order + animação de entrada
 ///
 /// Setup:
-/// - Crie um GameObject "PhaseExit" com este script
-/// - Adicione SpriteRenderer (sprite da porta fechada)
-/// - Adicione BoxCollider2D (Is Trigger: true) — área de entrada
-/// - Arraste a referência do BossDonna no Inspector
+/// - BoxCollider2D → Is Trigger: TRUE
+/// - Arraste BossDonna no Inspector
+/// - Hub Scene Name: nome exato da cena do Hub no Build Settings
 /// </summary>
 public class PhaseExit : MonoBehaviour
 {
     [Header("Referências")]
     [SerializeField] private BossDonna bossRef;
 
+    [Header("Cena do Hub")]
+    [Tooltip("Nome exato da cena do Hub no Build Settings (ex: Hub)")]
+    [SerializeField] private string hubSceneName = "Hub";
+
     [Header("Sprites")]
-    [SerializeField] private Sprite spriteClosed;   // porta fechada
-    [SerializeField] private Sprite spriteOpen;     // porta aberta
+    [SerializeField] private Sprite spriteClosed;
+    [SerializeField] private Sprite spriteOpen;
+
+    [Header("Sorting")]
+    [Tooltip("Sorting Order quando fechada (atrás do player)")]
+    [SerializeField] private int closedSortingOrder = 0;
+    [Tooltip("Sorting Order quando player entra (frente do player)")]
+    [SerializeField] private int openSortingOrder   = 5;
 
     [Header("Efeitos")]
     [SerializeField] private AudioClip openSFX;
     [SerializeField] private AudioClip enterSFX;
     [SerializeField] private ParticleSystem openEffect;
-    [SerializeField] private GameObject interactPrompt; // "ENTER — Voltar ao Hub"
+    [SerializeField] private GameObject interactPrompt;
 
     [Header("Delay após boss morrer")]
-    [SerializeField] private float openDelay = 2f; // aguarda animação do boss
+    [SerializeField] private float openDelay = 2f;
 
-    private bool isOpen    = false;
-    private bool isEntering = false;
+    private bool          isOpen     = false;
+    private bool          isEntering = false;
     private SpriteRenderer sr;
     private AudioSource    audioSource;
 
@@ -46,9 +50,11 @@ public class PhaseExit : MonoBehaviour
         sr          = GetComponent<SpriteRenderer>();
         audioSource = GetComponent<AudioSource>();
 
-        // Porta começa fechada
-        if (sr != null && spriteClosed != null)
-            sr.sprite = spriteClosed;
+        if (sr != null)
+        {
+            if (spriteClosed != null) sr.sprite = spriteClosed;
+            sr.sortingOrder = closedSortingOrder;
+        }
 
         if (interactPrompt != null)
             interactPrompt.SetActive(false);
@@ -56,7 +62,6 @@ public class PhaseExit : MonoBehaviour
 
     void Start()
     {
-        // Subscreve ao evento de boss derrotado
         if (bossRef != null)
             bossRef.OnBossDefeated += OnBossDefeated;
         else
@@ -69,48 +74,31 @@ public class PhaseExit : MonoBehaviour
             bossRef.OnBossDefeated -= OnBossDefeated;
     }
 
-    // ── BOSS DERROTADO ────────────────────────────────────────────
-    private void OnBossDefeated()
-    {
-        StartCoroutine(OpenSequence());
-    }
+    private void OnBossDefeated() => StartCoroutine(OpenSequence());
 
     private IEnumerator OpenSequence()
     {
-        // Aguarda animação de morte do boss + coleta do fragmento
         yield return new WaitForSeconds(openDelay);
-
         Open();
     }
 
-    // ── ABRE A PORTA ─────────────────────────────────────────────
     public void Open()
     {
         if (isOpen) return;
         isOpen = true;
 
-        // Troca sprite
         if (sr != null && spriteOpen != null)
             sr.sprite = spriteOpen;
 
-        // SFX
-        if (openSFX != null)
-            audioSource?.PlayOneShot(openSFX);
-
-        // Partículas
-        if (openEffect != null)
-            openEffect.Play();
-
-        // Câmera aponta para a porta brevemente
+        audioSource?.PlayOneShot(openSFX);
+        if (openEffect != null) openEffect.Play();
         CameraShake.Instance?.Pulse(0.08f);
 
-        // Anima a abertura
         StartCoroutine(OpenAnimation());
     }
 
     private IEnumerator OpenAnimation()
     {
-        // Scale bounce ao abrir
         Vector3 orig = transform.localScale;
         float t = 0f;
         while (t < 0.3f)
@@ -122,33 +110,88 @@ public class PhaseExit : MonoBehaviour
         }
         transform.localScale = orig;
 
-        // Mostra prompt de interação
         if (interactPrompt != null)
             interactPrompt.SetActive(true);
     }
 
-    // ── PLAYER ENTRA NA PORTA ────────────────────────────────────
     void OnTriggerEnter2D(Collider2D other)
     {
         if (!isOpen || isEntering) return;
         if (!other.CompareTag("Player")) return;
 
         isEntering = true;
-        if (interactPrompt != null) interactPrompt.SetActive(false);
-        if (enterSFX != null) audioSource?.PlayOneShot(enterSFX);
 
-        StartCoroutine(ExitSequence());
+        if (interactPrompt != null) interactPrompt.SetActive(false);
+        audioSource?.PlayOneShot(enterSFX);
+
+        // Porta na frente do player
+        if (sr != null) sr.sortingOrder = openSortingOrder;
+
+        // Trava collider do player
+        var col = other.GetComponent<Collider2D>();
+        if (col != null) col.enabled = false;
+
+        StartCoroutine(ExitSequence(other.gameObject));
     }
 
-    private IEnumerator ExitSequence()
+    private IEnumerator ExitSequence(GameObject player)
     {
-        // Salva o jogo antes de sair
         GameManager.Instance?.SaveGame();
 
-        // Pequena pausa dramática
-        yield return new WaitForSeconds(0.3f);
+        yield return StartCoroutine(PlayerEnterAnimation(player));
 
-        // Volta ao Hub com fade
-        SceneController.Instance?.GoToHub();
+        GoToHub();
+    }
+
+    private IEnumerator PlayerEnterAnimation(GameObject player)
+    {
+        var pc = player.GetComponent<PlayerController>();
+        if (pc != null) pc.enabled = false;
+
+        var rb = player.GetComponent<Rigidbody2D>();
+        if (rb != null) rb.linearVelocity = Vector2.zero;
+
+        Vector3 startPos   = player.transform.position;
+        Vector3 targetPos  = transform.position;
+        Vector3 startScale = player.transform.localScale;
+
+        float t = 0f;
+        while (t < 0.4f)
+        {
+            t += Time.deltaTime;
+            float pct = t / 0.4f;
+            player.transform.position   = Vector3.Lerp(startPos, targetPos, pct);
+            player.transform.localScale = Vector3.Lerp(startScale, Vector3.zero, pct);
+            yield return null;
+        }
+    }
+
+    private void GoToHub()
+    {
+        // Tenta SceneController
+        if (SceneController.Instance != null)
+        {
+            SceneController.Instance.GoToHub();
+            return;
+        }
+
+        // Tenta GameManager direto
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.LoadHub();
+            return;
+        }
+
+        // Fallback para testes no Editor (sem managers na cena)
+        if (!string.IsNullOrEmpty(hubSceneName))
+        {
+            Debug.LogWarning("[PhaseExit] Nenhum Manager encontrado. Carregando Hub direto via SceneManager.");
+            SceneManager.LoadScene(hubSceneName);
+        }
+        else
+        {
+            Debug.LogError("[PhaseExit] hubSceneName está vazio e nenhum Manager existe. " +
+                           "Preencha o campo Hub Scene Name no Inspector.");
+        }
     }
 }
