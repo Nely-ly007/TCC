@@ -3,15 +3,10 @@ using UnityEngine.UIElements;
 using System.Collections;
 
 /// <summary>
-/// POP ADVENTURE - BossHPUIToolkit v2
-/// Fix: root pode estar null quando Show() é chamado antes de OnEnable().
-/// Adicionado InitRoot() chamado em Awake + OnEnable para garantir referências.
-///
-/// Setup:
-/// 1. Crie um GameObject "BossHPUI" na cena da fase
-/// 2. Add Component: UIDocument → Source: BossHPPanel.uxml
-/// 3. Add Component: BossHPUIToolkit
-/// 4. Vincule no Inspector do BossDonna (campo bossHPUI)
+/// POP ADVENTURE - BossHPUIToolkit v3
+/// Fix: rootVisualElement só fica disponível após o UIDocument processar o UXML.
+/// Solução: espera o root estar pronto com um check por frame (IEnumerator),
+/// depois aplica qualquer chamada Show/UpdateHP que chegou antes do root estar pronto.
 /// </summary>
 [RequireComponent(typeof(UIDocument))]
 public class BossHPUIToolkit : MonoBehaviour
@@ -21,7 +16,7 @@ public class BossHPUIToolkit : MonoBehaviour
     [Header("Dados do Boss")]
     [SerializeField] private string bossDisplayName = "DONNA";
 
-    private UIDocument  uiDoc;
+    private UIDocument    uiDoc;
     private VisualElement root;
     private VisualElement barFill;
     private Label         hpText;
@@ -32,42 +27,40 @@ public class BossHPUIToolkit : MonoBehaviour
 
     private int  maxHP;
     private bool isPhase2 = false;
+    private bool rootReady = false;
     private Coroutine damageFlashCoroutine;
+
+    // Guarda chamadas que chegaram antes do root estar pronto
+    private bool  pendingShow   = false;
+    private int   pendingHP     = 0;
+    private int   pendingMax    = 0;
 
     public bool IsVisible { get; private set; } = false;
 
     // ── INIT ─────────────────────────────────────────────────────
     void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-
         uiDoc = GetComponent<UIDocument>();
-        InitRoot(); // tenta inicializar já no Awake
     }
 
-    void OnEnable()
+    void Start()
     {
-        InitRoot(); // garante referências se Awake não conseguiu
+        // UIDocument pode não ter processado o UXML ainda — espera por frame
+        StartCoroutine(WaitForRoot());
     }
 
-    /// <summary>
-    /// Busca e guarda todos os elementos visuais do UXML.
-    /// Seguro chamar múltiplas vezes.
-    /// </summary>
-    private void InitRoot()
+    private IEnumerator WaitForRoot()
     {
-        if (uiDoc == null) uiDoc = GetComponent<UIDocument>();
-        if (uiDoc == null) return;
+        // Aguarda até rootVisualElement não ser null e ter filhos (UXML carregado)
+        while (uiDoc.rootVisualElement == null ||
+               uiDoc.rootVisualElement.childCount == 0)
+        {
+            yield return null;
+        }
 
-        var r = uiDoc.rootVisualElement;
-        if (r == null) return;
-
-        root = r;
+        root = uiDoc.rootVisualElement;
 
         barFill        = root.Q<VisualElement>("boss-bar-fill");
         hpText         = root.Q<Label>("boss-hp-text");
@@ -79,19 +72,33 @@ public class BossHPUIToolkit : MonoBehaviour
         if (bossNameLabel != null)
             bossNameLabel.text = bossDisplayName;
 
-        // Começa escondido
+        rootReady = true;
+
+        // Esconde por padrão
         root.style.display = DisplayStyle.None;
+
+        // Aplica Show pendente (BossDonna.ActivateBoss chamou antes do root estar pronto)
+        if (pendingShow)
+        {
+            pendingShow = false;
+            Show(pendingHP, pendingMax);
+        }
+
+        // Log de debug — confirma quais elementos foram encontrados
+        Debug.Log($"[BossHPUIToolkit] Root pronto. " +
+                  $"barFill={barFill != null}, hpText={hpText != null}, " +
+                  $"bossName={bossNameLabel != null}");
     }
 
     // ── SHOW / HIDE ───────────────────────────────────────────────
     public void Show(int currentHP, int max)
     {
-        // Garante que root está inicializado (pode ser chamado antes de OnEnable)
-        if (root == null) InitRoot();
-        if (root == null)
+        if (!rootReady)
         {
-            Debug.LogWarning("[BossHPUIToolkit] Show() chamado mas root ainda é null. " +
-                             "Verifique se o UIDocument tem o UXML vinculado.");
+            // Root ainda não está pronto — guarda para aplicar depois
+            pendingShow = true;
+            pendingHP   = currentHP;
+            pendingMax  = max;
             return;
         }
 
@@ -110,15 +117,14 @@ public class BossHPUIToolkit : MonoBehaviour
     public void Hide()
     {
         IsVisible = false;
-        if (root == null) return;
+        if (!rootReady || root == null) return;
         root.style.display = DisplayStyle.None;
     }
 
     // ── ATUALIZAR HP ─────────────────────────────────────────────
     public void UpdateHP(int current, int max)
     {
-        if (root == null) InitRoot();
-        if (barFill == null) return;
+        if (!rootReady || barFill == null) return;
 
         maxHP = max;
         float pct = max > 0 ? (float)current / max : 0f;
@@ -128,7 +134,6 @@ public class BossHPUIToolkit : MonoBehaviour
         if (hpText != null)
             hpText.text = $"{current} / {max}";
 
-        // Cor da barra por % de vida
         if (pct > 0.5f)
             barFill.style.backgroundColor = new StyleColor(new Color(0.86f, 0.20f, 0.31f));
         else if (pct > 0.25f)
@@ -136,7 +141,6 @@ public class BossHPUIToolkit : MonoBehaviour
         else
             barFill.style.backgroundColor = new StyleColor(new Color(0.86f, 0.10f, 0.10f));
 
-        // Flash da barra ao tomar dano
         if (damageFlashCoroutine != null)
             StopCoroutine(damageFlashCoroutine);
         damageFlashCoroutine = StartCoroutine(DamageFlash());
@@ -145,7 +149,7 @@ public class BossHPUIToolkit : MonoBehaviour
     // ── FASE 2 ────────────────────────────────────────────────────
     public void ActivatePhase2()
     {
-        if (isPhase2) return;
+        if (isPhase2 || !rootReady) return;
         isPhase2 = true;
 
         if (phaseDot2 != null)
@@ -184,9 +188,7 @@ public class BossHPUIToolkit : MonoBehaviour
 
         var saved = barFill.style.backgroundColor;
         barFill.style.backgroundColor = new StyleColor(Color.white);
-
         yield return new WaitForSeconds(0.06f);
-
         barFill.style.backgroundColor = saved;
     }
 

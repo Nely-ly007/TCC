@@ -2,11 +2,17 @@ using UnityEngine;
 
 namespace PopAdventure.Hive
 {
-    /// <summary>Poça de mel: zona trigger que limita a velocidade horizontal e o impulso de pulo do Player.</summary>
+    /// <summary>
+    /// Poça de mel: zona trigger que limita a velocidade horizontal e o impulso de pulo do Player.
+    /// Não causa dano e não bloqueia: é para ATRAVESSAR andando (pular por cima não resolve, a poça é larga).
+    /// Valores no HiveLevelBootstrap ▸ Honey Speed X / Honey Max Up.
+    /// </summary>
     public class HiveHoneyPool : MonoBehaviour
     {
-        [SerializeField] private float maxSpeedX = 2.4f;   // velocidade normal do Player = 5
-        [SerializeField] private float maxUpSpeed = 9f;    // reduz a altura do pulo
+        /// <summary>Velocidade horizontal máxima dentro do mel (Player normal = 5).</summary>
+        public static float SpeedX = 3.5f;
+        /// <summary>Velocidade vertical máxima dentro do mel (menor = pulo mais baixo).</summary>
+        public static float MaxUp = 13f;
 
         private Vector2 size;
         private Transform surface;
@@ -66,7 +72,7 @@ namespace PopAdventure.Hive
         {
             if (!HiveBridge.IsPlayer(o)) return;
             var st = HivePlayerStatus.For(HiveBridge.Player);
-            if (st != null) st.Honey(maxSpeedX, maxUpSpeed);
+            if (st != null) st.Honey(SpeedX, MaxUp);
         }
     }
 }

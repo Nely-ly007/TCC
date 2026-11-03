@@ -283,13 +283,13 @@ namespace PopAdventure.Hive.EditorTools
             // ---- B: plataforma móvel + mel
             Mk(HiveMarkerType.KillZone, 65f, -8f, m => m.size = new Vector2(24f, 2f));
             Mk(HiveMarkerType.MovingPlatform, 58f, 1f, m => { m.travel = new Vector2(14f, 0f); m.beats = 4; });
-            Mk(HiveMarkerType.VinylRow, 65f, 4f, m => { m.count = 6; m.spacing = 2.2f; m.arc = 2f; });
-            Mk(HiveMarkerType.HoneyPool, 80f, 0.4f, m => m.size = new Vector2(6f, 0.8f));
+            // vinis em linha reta, rente ao percurso da plataforma (y = topo da plataforma + ~1,05): coleta sem pular
+            Mk(HiveMarkerType.VinylRow, 65f, 2.3f, m => { m.count = 6; m.spacing = 2.4f; m.arc = 0f; });
+            Mk(HiveMarkerType.HoneyPool, 79f, 0.4f, m => m.size = new Vector2(5f, 0.8f));
             Mk(HiveMarkerType.HoneyDrip, 84f, 7f, m => { m.beats = 4; m.offset = 0; });
             Mk(HiveMarkerType.HoneyDrip, 86f, 7f, m => { m.beats = 4; m.offset = 2; });
             Mk(HiveMarkerType.WaxThorns, 88.5f, 0.3125f, m => m.size = new Vector2(2f, 0.625f));
             Mk(HiveMarkerType.VinylRow, 82f, 1.3f, m => { m.count = 4; m.spacing = 1.2f; m.arc = 0f; });
-            Mk(HiveMarkerType.WorkerBee, 84f, 4.2f, m => m.travel = new Vector2(6f, 0f));
 
             // ---- C: plataformas que esfarelam + vespa-guarda
             Mk(HiveMarkerType.KillZone, 100f, -8f, m => m.size = new Vector2(26f, 2f));

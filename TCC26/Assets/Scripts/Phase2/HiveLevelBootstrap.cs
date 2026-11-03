@@ -49,6 +49,10 @@ namespace PopAdventure.Hive
         [Header("Balanceamento")]
         [Tooltip("Velocidade das plataformas de ritmo: batidas por caractere do pattern. 1 = rápido (difícil), 2 = meio tempo (padrão, mais fácil), 4 = bem lento.")]
         [Range(1, 4)] public int beatPlatformStep = 2;
+        [Tooltip("Velocidade horizontal máxima do Player dentro da poça de mel (normal = 5). Maior = mais fácil.")]
+        public float honeySpeedX = 3.5f;
+        [Tooltip("Velocidade vertical máxima dentro do mel. Menor = pulo mais baixo no mel. 13 = pulo ~metade da altura.")]
+        public float honeyMaxUp = 13f;
         public int pitDamage = 15;
         [Tooltip("Distância (unidades) em que o vinil começa a ser puxado até o Player. 0 = sem ímã (só coleta encostando).")]
         public float vinylMagnet = 0.9f;
@@ -87,6 +91,8 @@ namespace PopAdventure.Hive
             BossActive = false;
 
             HiveBeatPlatform.StepBeats = Mathf.Clamp(beatPlatformStep, 1, 4);
+            HiveHoneyPool.SpeedX = Mathf.Max(1f, honeySpeedX);
+            HiveHoneyPool.MaxUp = Mathf.Max(3f, honeyMaxUp);
             HivePickup.VinylMagnet = Mathf.Max(0f, vinylMagnet);
             HivePickup.NoteMagnet = Mathf.Max(0f, noteMagnet);
 
