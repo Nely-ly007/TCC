@@ -2,16 +2,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
 
-/// <summary>
-/// POP ADVENTURE - PhaseExit v3
-/// Fix: fallback robusto para testes no Editor (sem GameManager na cena)
-/// Fix: player fica "dentro" da porta — sorting order + animação de entrada
-///
-/// Setup:
-/// - BoxCollider2D → Is Trigger: TRUE
-/// - Arraste BossDonna no Inspector
-/// - Hub Scene Name: nome exato da cena do Hub no Build Settings
-/// </summary>
 public class PhaseExit : MonoBehaviour
 {
     [Header("Referências")]
@@ -38,10 +28,10 @@ public class PhaseExit : MonoBehaviour
     [SerializeField] private GameObject interactPrompt;
 
     [Header("Delay após boss morrer")]
-    [SerializeField] private float openDelay = 2f;
+    [SerializeField] private float openDelay = 0.5f;
 
-    private bool          isOpen     = false;
-    private bool          isEntering = false;
+    private bool isOpen     = false;
+    private bool isEntering = false;
     private SpriteRenderer sr;
     private AudioSource    audioSource;
 
@@ -58,14 +48,20 @@ public class PhaseExit : MonoBehaviour
 
         if (interactPrompt != null)
             interactPrompt.SetActive(false);
-    }
 
-    void Start()
-    {
+        // Se esquecer de arrastar no Inspector, busca na cena
+        if (bossRef == null)
+            bossRef = FindObjectOfType<BossDonna>();
+
         if (bossRef != null)
+        {
             bossRef.OnBossDefeated += OnBossDefeated;
+            Debug.Log("[PhaseExit] Inscrito no OnBossDefeated com sucesso!");
+        }
         else
-            Debug.LogWarning("[PhaseExit] BossRef não atribuído no Inspector!");
+        {
+            Debug.LogError("[PhaseExit] NENHUM BossDonna encontrado na cena!");
+        }
     }
 
     void OnDestroy()
@@ -74,7 +70,11 @@ public class PhaseExit : MonoBehaviour
             bossRef.OnBossDefeated -= OnBossDefeated;
     }
 
-    private void OnBossDefeated() => StartCoroutine(OpenSequence());
+    private void OnBossDefeated()
+    {
+        Debug.Log("[PhaseExit] Evento de vitória recebido! Abrindo porta...");
+        StartCoroutine(OpenSequence());
+    }
 
     private IEnumerator OpenSequence()
     {
@@ -86,6 +86,8 @@ public class PhaseExit : MonoBehaviour
     {
         if (isOpen) return;
         isOpen = true;
+
+        Debug.Log("[PhaseExit] Porta ABERTA!");
 
         if (sr != null && spriteOpen != null)
             sr.sprite = spriteOpen;
@@ -111,7 +113,14 @@ public class PhaseExit : MonoBehaviour
         transform.localScale = orig;
 
         if (interactPrompt != null)
+        {
             interactPrompt.SetActive(true);
+            Debug.Log("[PhaseExit] interactPrompt ATIVADO!");
+        }
+        else
+        {
+            Debug.LogWarning("[PhaseExit] interactPrompt é NULL! Verifique o Inspector.");
+        }
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -124,10 +133,8 @@ public class PhaseExit : MonoBehaviour
         if (interactPrompt != null) interactPrompt.SetActive(false);
         audioSource?.PlayOneShot(enterSFX);
 
-        // Porta na frente do player
         if (sr != null) sr.sortingOrder = openSortingOrder;
 
-        // Trava collider do player
         var col = other.GetComponent<Collider2D>();
         if (col != null) col.enabled = false;
 
@@ -137,9 +144,7 @@ public class PhaseExit : MonoBehaviour
     private IEnumerator ExitSequence(GameObject player)
     {
         GameManager.Instance?.SaveGame();
-
         yield return StartCoroutine(PlayerEnterAnimation(player));
-
         GoToHub();
     }
 
@@ -168,30 +173,21 @@ public class PhaseExit : MonoBehaviour
 
     private void GoToHub()
     {
-        // Tenta SceneController
         if (SceneController.Instance != null)
         {
             SceneController.Instance.GoToHub();
             return;
         }
 
-        // Tenta GameManager direto
         if (GameManager.Instance != null)
         {
             GameManager.Instance.LoadHub();
             return;
         }
 
-        // Fallback para testes no Editor (sem managers na cena)
         if (!string.IsNullOrEmpty(hubSceneName))
         {
-            Debug.LogWarning("[PhaseExit] Nenhum Manager encontrado. Carregando Hub direto via SceneManager.");
             SceneManager.LoadScene(hubSceneName);
-        }
-        else
-        {
-            Debug.LogError("[PhaseExit] hubSceneName está vazio e nenhum Manager existe. " +
-                           "Preencha o campo Hub Scene Name no Inspector.");
         }
     }
 }

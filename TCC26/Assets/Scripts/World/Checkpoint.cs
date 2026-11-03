@@ -1,135 +1,77 @@
 using UnityEngine;
-using System.Collections;
 
-/// <summary>
-/// POP ADVENTURE - Checkpoint
-/// Ponto de salvamento. Ao tocar, define novo respawn e salva o estado.
-/// </summary>
-public class Checkpoint : MonoBehaviour
+namespace PopAdventure.World
 {
-    [SerializeField] private bool isActive = false;
-    [SerializeField] private Animator checkpointAnim;
-    [SerializeField] private AudioClip activateSFX;
-    [SerializeField] private Color activeColor = Color.green;
-    [SerializeField] private Color inactiveColor = Color.gray;
-
-    private SpriteRenderer sr;
-    private AudioSource audioSource;
-
-    void Awake()
+    public class Checkpoint : MonoBehaviour
     {
-        sr = GetComponent<SpriteRenderer>();
-        audioSource = GetComponent<AudioSource>();
-        UpdateVisual();
-    }
+        [Header("Sprites")]
+        [Tooltip("Sprite quando o Checkpoint ainda NÃO foi ativado (Preto/Desativado)")]
+        [SerializeField] private Sprite spriteInactive;
+        [Tooltip("Sprite quando o Checkpoint FOI ativado (Original/Colorido)")]
+        [SerializeField] private Sprite spriteActive;
 
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        if (isActive || !other.CompareTag("Player")) return;
-        Activate();
-    }
+        [Header("Efeitos")]
+        [SerializeField] private ParticleSystem activateEffect;
+        [SerializeField] private AudioClip activateSFX;
 
-    private void Activate()
-    {
-        isActive = true;
-        PlayerController.Instance?.SetCheckpoint(transform.position);
-        GameManager.Instance?.SaveGame();
+        private bool isActivated = false;
+        private SpriteRenderer sr;
+        private AudioSource audioSource;
 
-        if (activateSFX != null) audioSource?.PlayOneShot(activateSFX);
-        checkpointAnim?.SetTrigger("Activate");
-        UpdateVisual();
-    }
-
-    private void UpdateVisual()
-    {
-        if (sr != null) sr.color = isActive ? activeColor : inactiveColor;
-    }
-}
-
-/// <summary>
-/// POP ADVENTURE - BossTrigger
-/// Área que ativa o boss ao ser entrado pelo jogador.
-/// </summary>
-public class BossTrigger : MonoBehaviour
-{
-    [SerializeField] private BossDonna bossRef;
-    [SerializeField] private GameObject bossHealthBarUI;
-    [SerializeField] private AudioClip bossIntroSFX;
-
-    private bool triggered;
-
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        if (triggered || !other.CompareTag("Player")) return;
-        triggered = true;
-        StartCoroutine(BossIntroSequence());
-    }
-
-    private IEnumerator BossIntroSequence()
-    {
-        // Bloqueia a saída (fechar portas, etc - pode ser expandido)
-        if (bossIntroSFX != null)
-            AudioSource.PlayClipAtPoint(bossIntroSFX, transform.position);
-
-        yield return new WaitForSeconds(1f);
-
-        if (bossRef != null)
+        private void Awake()
         {
-            bossRef.ActivateBoss();
-            bossRef.OnBossDefeated += OnBossDefeated;
+            sr = GetComponent<SpriteRenderer>();
+            audioSource = GetComponent<AudioSource>();
+
+            // Configura o estado inicial (Desativado / Preto)
+            if (sr != null)
+            {
+                if (spriteInactive != null)
+                {
+                    sr.sprite = spriteInactive;
+                }
+                else
+                {
+                    // Caso não tenha colocado um sprite desativado, escurece o sprite atual (ficando preto)
+                    sr.color = Color.black; 
+                }
+            }
         }
 
-        if (bossHealthBarUI != null)
-            bossHealthBarUI.SetActive(true);
-    }
-
-    private void OnBossDefeated()
-    {
-        if (bossHealthBarUI != null)
-            bossHealthBarUI.SetActive(false);
-
-        // Pode abrir porta para próxima fase
-        StartCoroutine(VictorySequence());
-    }
-
-    private IEnumerator VictorySequence()
-    {
-        yield return new WaitForSeconds(2f);
-        // Aqui você pode carregar a próxima cena ou retornar ao Hub
-        GameManager.Instance?.LoadHub();
-    }
-}
-
-/// <summary>
-/// POP ADVENTURE - WorldColorTransition
-/// Transição do mundo cinza para colorido ao entrar numa fase.
-/// </summary>
-public class WorldColorTransition : MonoBehaviour
-{
-    [SerializeField] private float transitionDuration = 1.5f;
-    [SerializeField] private Color targetColor = Color.white;
-
-    private SpriteRenderer[] allSprites;
-
-    void Start()
-    {
-        allSprites = FindObjectsByType<SpriteRenderer>(FindObjectsSortMode.None);
-        StartCoroutine(ColorTransition());
-    }
-
-    private IEnumerator ColorTransition()
-    {
-        float t = 0;
-        while (t < transitionDuration)
+        private void OnTriggerEnter2D(Collider2D other)
         {
-            t += Time.deltaTime;
-            float lerp = t / transitionDuration;
-            foreach (var sr in allSprites)
+            if (isActivated) return;
+
+            if (other.CompareTag("Player"))
             {
+                isActivated = true;
+
+                // Troca para o sprite ativado / devolve a cor normal
                 if (sr != null)
-                    sr.color = Color.Lerp(Color.gray, targetColor, lerp);
+                {
+                    if (spriteActive != null) sr.sprite = spriteActive;
+                    sr.color = Color.white; // Restaura a cor original
+                }
+
+                if (activateEffect != null)
+                    activateEffect.Play();
+
+                if (activateSFX != null && audioSource != null)
+                    audioSource.PlayOneShot(activateSFX);
+
+                // Salva o progresso
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.SaveGame();
+                    Debug.Log($"[Checkpoint] Progresso salvo pelo GameManager na posição: {transform.position}");
+                }
+                else
+                {
+                    PlayerPrefs.SetFloat("Checkpoint_X", transform.position.x);
+                    PlayerPrefs.SetFloat("Checkpoint_Y", transform.position.y);
+                    PlayerPrefs.Save();
+                }
             }
-            yield return null;
         }
     }
 }

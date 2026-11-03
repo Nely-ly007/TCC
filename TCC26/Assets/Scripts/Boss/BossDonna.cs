@@ -1,13 +1,6 @@
 using UnityEngine;
 using System.Collections;
 
-/// <summary>
-/// POP ADVENTURE - BossDonna v3
-/// Fixes:
-/// - Hurt não volta ao idle: ResetTrigger antes de SetTrigger + flag isHurt
-/// - DamageFlash com cor vermelha visível (não branco) + guard contra chamadas simultâneas
-/// - bossHPUI null-safe com busca automática se não vinculado no Inspector
-/// </summary>
 public class BossDonna : MonoBehaviour, IDamageable
 {
     // ── STATS ─────────────────────────────────────────────────────
@@ -51,18 +44,18 @@ public class BossDonna : MonoBehaviour, IDamageable
 
     // ── DAMAGE FLASH ──────────────────────────────────────────────
     [Header("Damage Flash")]
-    [SerializeField] private Color flashColor    = new Color(1f, 0.2f, 0.2f); // vermelho
+    [SerializeField] private Color flashColor    = new Color(1f, 0.2f, 0.2f);
     [SerializeField] private float flashDuration = 0.12f;
 
     // ── ESTADO ───────────────────────────────────────────────────
     private int  currentHP;
     private bool isDead;
     private bool isPhase2;
-    private bool isBossActive;
+    private bool isBossActive = false;
     private int  healDropCount = 0;
     private int  attackPattern = 0;
-    private bool isHurt        = false; // guard: evita Hurt trigger enquanto já está em Hurt
-    private bool isFlashing    = false; // guard: evita flash simultâneo
+    private bool isHurt        = false;
+    private bool isFlashing    = false;
 
     // ── COMPONENTES ───────────────────────────────────────────────
     private Animator         anim;
@@ -75,21 +68,20 @@ public class BossDonna : MonoBehaviour, IDamageable
     public System.Action<int, int> OnHealthChanged;
     public System.Action           OnBossDefeated;
 
-    // ─────────────────────────────────────────────────────────────
     void Awake()
     {
         anim        = GetComponent<Animator>();
         audioSource = GetComponent<AudioSource>();
         currentHP   = maxHP;
 
-        // Busca todos SpriteRenderers (incluindo inativos) e salva cores originais
         bodyParts      = GetComponentsInChildren<SpriteRenderer>(true);
         originalColors = new Color[bodyParts.Length];
         for (int i = 0; i < bodyParts.Length; i++)
+        {
             if (bodyParts[i] != null)
                 originalColors[i] = bodyParts[i].color;
+        }
 
-        // Se não vinculou no Inspector, tenta encontrar na cena
         if (bossHPUI == null)
             bossHPUI = FindObjectOfType<BossHPUIToolkit>();
     }
@@ -97,8 +89,9 @@ public class BossDonna : MonoBehaviour, IDamageable
     void Start()
     {
         player = PlayerController.Instance?.transform;
+
+        // Oculta a UI de HP ao carregar a cena (só exibe no ActivateBoss)
         bossHPUI?.Hide();
-        bossHPUI?.UpdateHP(currentHP, maxHP);
     }
 
     void OnEnable()  => RhythmManager.OnBeatNumberStatic += OnBeat;
@@ -107,6 +100,8 @@ public class BossDonna : MonoBehaviour, IDamageable
     // ── ATIVAÇÃO ─────────────────────────────────────────────────
     public void ActivateBoss()
     {
+        if (isBossActive) return;
+
         isBossActive = true;
         bossHPUI?.Show(currentHP, maxHP);
 
@@ -116,7 +111,6 @@ public class BossDonna : MonoBehaviour, IDamageable
         anim?.SetTrigger("Entrance");
     }
 
-    // ── RITMO ────────────────────────────────────────────────────
     private void OnBeat(int beatNumber)
     {
         if (!isBossActive || isDead) return;
@@ -138,7 +132,6 @@ public class BossDonna : MonoBehaviour, IDamageable
         attackPattern++;
     }
 
-    // ── COROUTINES DE ATAQUE ─────────────────────────────────────
     private IEnumerator SkateAttackCoroutine()
     {
         anim?.SetTrigger("AttackSkate");
@@ -160,7 +153,6 @@ public class BossDonna : MonoBehaviour, IDamageable
         yield return StartCoroutine(SkateAttackCoroutine());
     }
 
-    // ── ANIMATION EVENTS ─────────────────────────────────────────
     public void SpawnSkateEvent()
     {
         if (player == null || skateProjectilePrefab == null) return;
@@ -186,154 +178,137 @@ public class BossDonna : MonoBehaviour, IDamageable
             ? waveSpawnPoint.position
             : transform.position;
 
-        var wL = Instantiate(shockwavePrefab, spawnPos + Vector3.left  * 0.5f, Quaternion.identity);
-        var wR = Instantiate(shockwavePrefab, spawnPos + Vector3.right * 0.5f, Quaternion.identity);
-        wL.GetComponent<Shockwave>()?.Init(Vector2.left,  shockwaveDamage);
-        wR.GetComponent<Shockwave>()?.Init(Vector2.right, shockwaveDamage);
+        Instantiate(shockwavePrefab, spawnPos, Quaternion.identity);
     }
 
-    /// <summary>
-    /// Coloque um Animation Event NO ÚLTIMO FRAME de Donna_Hurt
-    /// apontando para este método. Ele libera o Animator de volta ao Idle.
-    /// </summary>
+    public void TakeDamage(int damage)
+    {
+        if (isDead || !isBossActive) return;
+
+        currentHP -= damage;
+        currentHP = Mathf.Clamp(currentHP, 0, maxHP);
+
+        OnHealthChanged?.Invoke(currentHP, maxHP);
+        bossHPUI?.UpdateHP(currentHP, maxHP);
+
+        if (!isFlashing)
+            StartCoroutine(DamageFlashCoroutine());
+
+        if (currentHP <= 0)
+        {
+            Die();
+            return;
+        }
+
+        if (!isPhase2 && currentHP <= phase2HPThreshold)
+        {
+            EnterPhase2();
+        }
+        else if (!isHurt)
+        {
+            StartCoroutine(HurtCoroutine());
+        }
+    }
+
+    private void EnterPhase2()
+    {
+        isPhase2 = true;
+        anim?.SetTrigger("Phase2");
+        PlaySFX(phase2SFX);
+        if (phase2Effect != null) phase2Effect.Play();
+
+        if (phase2Music != null)
+            RhythmManager.Instance?.StartMusic(phase2Music, 140f);
+    }
+
+    private IEnumerator HurtCoroutine()
+    {
+        isHurt = true;
+        anim?.ResetTrigger("Hurt");
+        anim?.SetTrigger("Hurt");
+        PlaySFX(hurtSFX);
+
+        yield return new WaitForSeconds(0.3f);
+        isHurt = false;
+    }
+
     public void OnHurtAnimationEnd()
     {
         isHurt = false;
         anim?.ResetTrigger("Hurt");
     }
 
-    // ── DANO ─────────────────────────────────────────────────────
-    public void TakeDamage(int amount)
-    {
-        if (isDead) return;
-
-        currentHP = Mathf.Max(0, currentHP - amount);
-        OnHealthChanged?.Invoke(currentHP, maxHP);
-        bossHPUI?.UpdateHP(currentHP, maxHP);
-
-        PlaySFX(hurtSFX);
-
-        // Só dispara Hurt se não estiver já em Hurt
-        if (!isHurt)
-        {
-            isHurt = true;
-            anim?.ResetTrigger("Hurt"); // limpa acumulação de triggers
-            anim?.SetTrigger("Hurt");
-        }
-
-        if (!isFlashing)
-            StartCoroutine(DamageFlash());
-
-        if (!isPhase2 && currentHP <= maxHP * 0.5f && healDropCount < maxHealDrops)
-            TryDropHeal();
-
-        if (!isPhase2 && currentHP <= phase2HPThreshold)
-            StartCoroutine(EnterPhase2());
-
-        if (currentHP <= 0)
-            StartCoroutine(Die());
-    }
-
-    private IEnumerator EnterPhase2()
-    {
-        isPhase2 = true;
-        anim?.SetTrigger("Phase2");
-        PlaySFX(phase2SFX);
-        CameraShake.Instance?.Shake(0.5f, 0.3f);
-
-        if (phase2Effect != null) phase2Effect.Play();
-        bossHPUI?.ActivatePhase2();
-
-        yield return new WaitForSeconds(1f);
-
-        if (phase2Music != null)
-            RhythmManager.Instance?.StartMusic(phase2Music, 140f);
-    }
-
-    private void TryDropHeal()
-    {
-        if (musicNoteHealPrefab == null) return;
-        healDropCount++;
-        Instantiate(musicNoteHealPrefab,
-            transform.position + Vector3.up * 1f,
-            Quaternion.identity);
-    }
-
-    private IEnumerator Die()
-    {
-        isDead       = true;
-        isBossActive = false;
-
-        StopCoroutine(nameof(DamageFlash));
-        isFlashing = false;
-        isHurt     = false;
-
-        // Restaura cores antes do fade
-        for (int i = 0; i < bodyParts.Length; i++)
-            if (bodyParts[i] != null)
-                bodyParts[i].color = originalColors[i];
-
-        anim?.SetTrigger("Death");
-        PlaySFX(deathSFX);
-        CameraShake.Instance?.Shake(0.8f, 0.4f);
-
-        bossHPUI?.Hide();
-
-        yield return new WaitForSeconds(2f);
-
-        if (goldenDiscFragmentPrefab != null)
-            Instantiate(goldenDiscFragmentPrefab,
-                transform.position + Vector3.up,
-                Quaternion.identity);
-
-        OnBossDefeated?.Invoke();
-
-        // Fade out
-        float t = 0f;
-        while (t < 1f)
-        {
-            t += Time.deltaTime;
-            foreach (var sr in bodyParts)
-                if (sr != null)
-                {
-                    Color c = sr.color;
-                    c.a = 1f - t;
-                    sr.color = c;
-                }
-            yield return null;
-        }
-
-        Destroy(gameObject);
-    }
-
-    // ── DAMAGE FLASH ─────────────────────────────────────────────
-    private IEnumerator DamageFlash()
+    private IEnumerator DamageFlashCoroutine()
     {
         isFlashing = true;
 
-        foreach (var sr in bodyParts)
-            if (sr != null) sr.color = flashColor;
+        for (int i = 0; i < bodyParts.Length; i++)
+        {
+            if (bodyParts[i] != null)
+                bodyParts[i].color = flashColor;
+        }
 
         yield return new WaitForSeconds(flashDuration);
 
         for (int i = 0; i < bodyParts.Length; i++)
+        {
             if (bodyParts[i] != null)
                 bodyParts[i].color = originalColors[i];
+        }
 
         isFlashing = false;
     }
 
-    // ── HELPERS ───────────────────────────────────────────────────
+    private void Die()
+    {
+        if (isDead) return;
+        isDead = true;
+
+        Debug.Log("[BossDonna] Boss derrotado! Notificando a PhaseExit...");
+
+        OnBossDefeated?.Invoke();
+
+        bossHPUI?.Hide();
+
+        if (anim != null && HasParameter(anim, "Die"))
+        {
+            anim.SetTrigger("Die");
+        }
+
+        PlaySFX(deathSFX);
+
+        if (goldenDiscFragmentPrefab != null)
+        {
+            Instantiate(goldenDiscFragmentPrefab, transform.position, Quaternion.identity);
+        }
+
+        StartCoroutine(DieSequence());
+    }
+
+    private bool HasParameter(Animator animator, string paramName)
+    {
+        foreach (AnimatorControllerParameter param in animator.parameters)
+        {
+            if (param.name == paramName) return true;
+        }
+        return false;
+    }
+
+    private IEnumerator DieSequence()
+    {
+        var colliders = GetComponentsInChildren<Collider2D>();
+        foreach (var col in colliders)
+        {
+            col.enabled = false;
+        }
+
+        yield return new WaitForSeconds(1.5f);
+        Destroy(gameObject);
+    }
+
     private void PlaySFX(AudioClip clip)
     {
         if (clip != null && audioSource != null)
             audioSource.PlayOneShot(clip);
-    }
-
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        if (skateSpawnPoint != null) Gizmos.DrawWireSphere(skateSpawnPoint.position, 0.2f);
-        if (waveSpawnPoint  != null) Gizmos.DrawWireSphere(waveSpawnPoint.position,  0.3f);
     }
 }
