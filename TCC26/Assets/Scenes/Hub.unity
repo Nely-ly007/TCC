@@ -7076,6 +7076,7 @@ GameObject:
   - component: {fileID: 1487120393}
   - component: {fileID: 1487120392}
   - component: {fileID: 1487120391}
+  - component: {fileID: 1487120395}
   m_Layer: 5
   m_Name: " Screen Space \u2014 Overlay"
   m_TagString: Untagged
@@ -7169,6 +7170,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1487120395
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1487120390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 23357669e17113041b04a269a94a794c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PhaseNavigation
+  btnFase1: {fileID: 567917681}
+  btnFase2: {fileID: 1429217553}
+  btnFase3: {fileID: 48037872}
+  btnFase4: {fileID: 1860672098}
 --- !u!1 &1500473311
 GameObject:
   m_ObjectHideFlags: 0

@@ -3,9 +3,6 @@ using UnityEngine.UI;
 
 /// <summary>
 /// POP ADVENTURE - PhaseNavigation
-/// Conecta os botões de fase do PhaseMapPanel ao SceneController.
-/// Adicione este script no HubManager ou em qualquer GameObject ativo na cena Hub.
-/// Arraste os 4 botões no Inspector.
 /// </summary>
 public class PhaseNavigation : MonoBehaviour
 {
@@ -15,26 +12,40 @@ public class PhaseNavigation : MonoBehaviour
     [SerializeField] private Button btnFase3;
     [SerializeField] private Button btnFase4;
 
+    private void OnEnable()
+    {
+        // Garante a atualização sempre que o painel ou objeto for ativado
+        RefreshButtons();
+
+        // Inscreve-se usando a referência direta do método
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnFragmentCollected += OnFragmentCollectedHandler;
+        }
+    }
+
+    private void OnDisable()
+    {
+        // Cancela a inscrição corretamente
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnFragmentCollected -= OnFragmentCollectedHandler;
+        }
+    }
+
     void Start()
     {
-        // Conecta cada botão à cena correspondente
+        // Conecta os botões
         btnFase1?.onClick.AddListener(() => LoadPhase(1));
         btnFase2?.onClick.AddListener(() => LoadPhase(2));
         btnFase3?.onClick.AddListener(() => LoadPhase(3));
         btnFase4?.onClick.AddListener(() => LoadPhase(4));
-
-        // Atualiza estado inicial (bloqueado/desbloqueado)
-        RefreshButtons();
-
-        // Atualiza quando um fragmento é coletado (nova fase desbloqueada)
-        if (GameManager.Instance != null)
-            GameManager.Instance.OnFragmentCollected += _ => RefreshButtons();
     }
 
-    void OnDestroy()
+    // Método nomeado para o evento
+    private void OnFragmentCollectedHandler(int fragmentId)
     {
-        if (GameManager.Instance != null)
-            GameManager.Instance.OnFragmentCollected -= _ => RefreshButtons();
+        RefreshButtons();
     }
 
     private void LoadPhase(int phaseNumber)
@@ -50,7 +61,7 @@ public class PhaseNavigation : MonoBehaviour
         SceneController.Instance?.GoToPhase(phaseNumber);
     }
 
-    private void RefreshButtons()
+    public void RefreshButtons()
     {
         if (GameManager.Instance == null) return;
 
@@ -63,11 +74,14 @@ public class PhaseNavigation : MonoBehaviour
     private void SetButton(Button btn, bool unlocked)
     {
         if (btn == null) return;
+        
         btn.interactable = unlocked;
 
-        // Muda a transparência visual para indicar bloqueado
+        // Atualiza o alpha do CanvasGroup (se existir)
         CanvasGroup cg = btn.GetComponent<CanvasGroup>();
         if (cg != null)
+        {
             cg.alpha = unlocked ? 1f : 0.5f;
+        }
     }
 }
