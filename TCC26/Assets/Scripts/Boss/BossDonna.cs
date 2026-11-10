@@ -56,6 +56,7 @@ public class BossDonna : MonoBehaviour, IDamageable
     private int  attackPattern = 0;
     private bool isHurt        = false;
     private bool isFlashing    = false;
+    private Coroutine hurtCoroutine;
 
     // ── COMPONENTES ───────────────────────────────────────────────
     private Animator         anim;
@@ -103,6 +104,7 @@ public class BossDonna : MonoBehaviour, IDamageable
         if (isBossActive) return;
 
         isBossActive = true;
+        Debug.Log("[BossDonna] Boss Ativado com sucesso!");
         bossHPUI?.Show(currentHP, maxHP);
 
         if (phase1Music != null)
@@ -114,6 +116,9 @@ public class BossDonna : MonoBehaviour, IDamageable
     private void OnBeat(int beatNumber)
     {
         if (!isBossActive || isDead) return;
+
+        Debug.Log($"[BossDonna] Recebeu Beat: {beatNumber}");
+
         if (beatNumber == 0) ExecuteAttackPattern();
         else if (beatNumber == 2 && isPhase2)
             StartCoroutine(WaveAttackCoroutine());
@@ -121,7 +126,8 @@ public class BossDonna : MonoBehaviour, IDamageable
 
     private void ExecuteAttackPattern()
     {
-        if (isDead) return;
+        if (isDead || isHurt) return;
+        
         int maxPattern = isPhase2 ? 3 : 2;
         switch (attackPattern % maxPattern)
         {
@@ -136,14 +142,20 @@ public class BossDonna : MonoBehaviour, IDamageable
     {
         anim?.SetTrigger("AttackSkate");
         PlaySFX(attackSFX);
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.3f);
+        
+        // Spawn de segurança caso não tenha Animation Event na Timeline do Animator
+        SpawnSkateEvent();
     }
 
     private IEnumerator WaveAttackCoroutine()
     {
         anim?.SetTrigger("AttackWave");
         PlaySFX(attackSFX);
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.3f);
+        
+        // Spawn de segurança caso não tenha Animation Event na Timeline do Animator
+        SpawnWaveEvent();
     }
 
     private IEnumerator DoubleSkateCoroutine()
@@ -155,12 +167,17 @@ public class BossDonna : MonoBehaviour, IDamageable
 
     public void SpawnSkateEvent()
     {
-        if (player == null || skateProjectilePrefab == null) return;
+        if (skateProjectilePrefab == null) return;
 
-        Vector2 dir = (player.position - transform.position).normalized;
-        dir.y = 0f;
-        if (dir == Vector2.zero) dir = Vector2.right;
-        dir.Normalize();
+        if (player == null) player = PlayerController.Instance?.transform;
+
+        Vector2 dir = Vector2.right;
+        if (player != null)
+        {
+            dir = (player.position - transform.position).normalized;
+            dir.y = 0f;
+            if (dir == Vector2.zero) dir = Vector2.right;
+        }
 
         Vector3 spawnPos = skateSpawnPoint != null
             ? skateSpawnPoint.position
@@ -178,7 +195,8 @@ public class BossDonna : MonoBehaviour, IDamageable
             ? waveSpawnPoint.position
             : transform.position;
 
-        Instantiate(shockwavePrefab, spawnPos, Quaternion.identity);
+        GameObject waveObj = Instantiate(shockwavePrefab, spawnPos, Quaternion.identity);
+        waveObj.GetComponent<Shockwave>()?.Init(Vector2.right, shockwaveDamage);
     }
 
     public void TakeDamage(int damage)
@@ -204,9 +222,11 @@ public class BossDonna : MonoBehaviour, IDamageable
         {
             EnterPhase2();
         }
-        else if (!isHurt)
+        else
         {
-            StartCoroutine(HurtCoroutine());
+            // Reinicia a corrotina de Hurt para impedir trava em loop
+            if (hurtCoroutine != null) StopCoroutine(hurtCoroutine);
+            hurtCoroutine = StartCoroutine(HurtCoroutine());
         }
     }
 
@@ -224,18 +244,32 @@ public class BossDonna : MonoBehaviour, IDamageable
     private IEnumerator HurtCoroutine()
     {
         isHurt = true;
-        anim?.ResetTrigger("Hurt");
-        anim?.SetTrigger("Hurt");
+        
+        // Garante a limpeza de triggers antigos acumulados no Animator
+        if (anim != null)
+        {
+            anim.ResetTrigger("AttackSkate");
+            anim.ResetTrigger("AttackWave");
+            anim.ResetTrigger("Hurt");
+            anim.SetTrigger("Hurt");
+        }
+
         PlaySFX(hurtSFX);
 
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(0.35f);
+
+        if (anim != null)
+        {
+            anim.ResetTrigger("Hurt");
+        }
+        
         isHurt = false;
     }
 
     public void OnHurtAnimationEnd()
     {
         isHurt = false;
-        anim?.ResetTrigger("Hurt");
+        if (anim != null) anim.ResetTrigger("Hurt");
     }
 
     private IEnumerator DamageFlashCoroutine()
