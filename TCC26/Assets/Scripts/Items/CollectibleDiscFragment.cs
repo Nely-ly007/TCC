@@ -2,14 +2,15 @@ using UnityEngine;
 using System.Collections;
 
 /// <summary>
-/// Fragmento do Disco Dourado.
+/// POP ADVENTURE - CollectibleDiscFragment
 /// Ao ser coletado, registra o fragmento,
 /// salva o jogo e abre a saída da fase.
 /// </summary>
 public class CollectibleDiscFragment : MonoBehaviour
 {
     [Header("Fragment")]
-    [SerializeField] private int phaseIndex = 0;
+    [Tooltip("Informe o número da fase correspondente (Ex: 1 para Fase 1, 2 para Fase 2)")]
+    [SerializeField] private int phaseIndex = 1;
 
     [Header("Audio")]
     [SerializeField] private AudioClip collectSFX;
@@ -77,11 +78,14 @@ public class CollectibleDiscFragment : MonoBehaviour
 
         Time.timeScale = 1f;
 
-        // Registra o fragmento
-        GameManager.Instance?.CollectFragment(phaseIndex);
+        Debug.Log($"[CollectibleDiscFragment] Coletado fragmento da Fase {phaseIndex}!");
 
-        // Salva o jogo
-        GameManager.Instance?.SaveGame();
+        // Registra o fragmento e desbloqueia a próxima fase no GameManager
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.CollectFragment(phaseIndex);
+            GameManager.Instance.SaveGame();
+        }
 
         // Abre a porta de saída
         FindFirstObjectByType<PhaseExit>()?.Open();

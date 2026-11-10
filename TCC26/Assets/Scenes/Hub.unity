@@ -2760,7 +2760,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.3019608, g: 0.3019608, b: 0.3019608, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4870,7 +4870,6 @@ MonoBehaviour:
   tooltipBossName: {fileID: 1076045419}
   tooltipDifficulty: {fileID: 357234584}
   tooltipOffset: {x: 20, y: 0}
-  tooltipScreenPadding: 15
   turntableTransform: {fileID: 1318351963}
   turntableInteractRadius: 1.8
   turntablePrompt: {fileID: 1500473311}
@@ -4878,7 +4877,6 @@ MonoBehaviour:
   maestroTransform: {fileID: 1438823442}
   maestroInteractRadius: 2
   maestroPrompt: {fileID: 129036597}
-  maestroPromptText: {fileID: 1099676612}
   dialoguePanel: {fileID: 764400290}
   dialogueGroup: {fileID: 764400292}
   dialogueNameText: {fileID: 1314948203}
@@ -4896,7 +4894,6 @@ MonoBehaviour:
   fragmentCountText: {fileID: 0}
   hubMusic: {fileID: 0}
   hubBPM: 0
-  loopHubMusic: 1
 --- !u!114 &928285542
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7585,7 +7582,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.3019608, g: 0.3019608, b: 0.3019608, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -8362,7 +8359,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.3019608, g: 0.3019608, b: 0.3019608, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -8437,7 +8434,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.3019608, g: 0.3019608, b: 0.3019608, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1

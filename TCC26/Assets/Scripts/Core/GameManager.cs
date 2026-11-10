@@ -4,11 +4,14 @@ using UnityEngine.SceneManagement;
 /// <summary>
 /// POP ADVENTURE - GameManager
 /// Gerencia estado global: vinis, fragmentos, upgrades, cenas.
-/// Persiste entre cenas via DontDestroyOnLoad.
 /// </summary>
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+
+    [Header("Debug / Testes Editor")]
+    [Tooltip("Se marcado, limpa todo o progresso (PlayerPrefs) ao iniciar no Editor.")]
+    [SerializeField] private bool clearSaveOnStartInEditor = false;
 
     // ── PRÓXIMA CENA (usado pela LoadingScene) ────────────────────
     public string NextScene { get; set; } = "MainMenu";
@@ -18,9 +21,21 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int startingVinyls = 0;
     private int currentVinyls;
 
-    // ── FRAGMENTOS DO DISCO ───────────────────────────────────────
-    private bool[] discFragments = new bool[4];
-    public int FragmentsCollected => System.Array.FindAll(discFragments, f => f).Length;
+    // ── FRAGMENTOS DO DISCO (1 a 4) ───────────────────────────────
+    private bool[] discFragments = new bool[5]; 
+
+    public int FragmentsCollected
+    {
+        get
+        {
+            int count = 0;
+            for (int i = 1; i <= 4; i++)
+            {
+                if (discFragments[i]) count++;
+            }
+            return count;
+        }
+    }
 
     // ── UPGRADES ─────────────────────────────────────────────────
     public bool HasDamageUpgrade   { get; private set; }
@@ -41,13 +56,26 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        if (Instance != null && Instance != this) 
+        { 
+            Destroy(gameObject); 
+            return; 
+        }
+
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        currentVinyls      = startingVinyls;
-        phasesUnlocked[0]  = true;
-        phasesUnlocked[1]  = true;
+#if UNITY_EDITOR
+        if (clearSaveOnStartInEditor)
+        {
+            ResetSaveData();
+        }
+#endif
+
+        currentVinyls     = startingVinyls;
+        phasesUnlocked[1] = true; // Fase 1 liberada por padrão
+
+        LoadGame();
     }
 
     // ── VINIS ────────────────────────────────────────────────────
@@ -67,23 +95,38 @@ public class GameManager : MonoBehaviour
 
     public int GetVinyls() => currentVinyls;
 
-    // ── FRAGMENTOS ───────────────────────────────────────────────
+    // ── FRAGMENTOS E FASES ───────────────────────────────────────
     public void CollectFragment(int phaseIndex)
     {
-        if (phaseIndex < 0 || phaseIndex >= discFragments.Length) return;
-        if (discFragments[phaseIndex]) return;
+        if (phaseIndex < 1 || phaseIndex > 4) return;
 
         discFragments[phaseIndex] = true;
-        OnFragmentCollected?.Invoke(FragmentsCollected);
 
-        if (phaseIndex + 1 < phasesUnlocked.Length)
-            phasesUnlocked[phaseIndex + 1] = true;
+        int nextPhase = phaseIndex + 1;
+        if (nextPhase <= 4)
+        {
+            phasesUnlocked[nextPhase] = true;
+        }
+
+        OnFragmentCollected?.Invoke(phaseIndex);
 
         if (FragmentsCollected >= 4)
+        {
             OnGameComplete?.Invoke();
+        }
     }
 
-    public bool HasFragment(int phaseIndex) => discFragments[phaseIndex];
+    public bool HasFragment(int phaseIndex)
+    {
+        if (phaseIndex < 1 || phaseIndex > 4) return false;
+        return discFragments[phaseIndex];
+    }
+
+    public bool IsPhaseUnlocked(int phaseIndex)
+    {
+        if (phaseIndex < 1 || phaseIndex > 4) return false;
+        return phasesUnlocked[phaseIndex];
+    }
 
     // ── UPGRADES ─────────────────────────────────────────────────
     public bool BuyDamageUpgrade()
@@ -110,7 +153,7 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    // ── CENAS (agora passam pela LoadingScene) ────────────────────
+    // ── CENAS ────────────────────────────────────────────────────
     public void LoadHub()
     {
         NextScene = "Hub";
@@ -119,7 +162,7 @@ public class GameManager : MonoBehaviour
 
     public void LoadPhase(int phaseNumber)
     {
-        if (!phasesUnlocked[phaseNumber]) return;
+        if (!IsPhaseUnlocked(phaseNumber)) return;
         NextScene = $"Fase {phaseNumber}";
         SceneManager.LoadScene("LoadingScene");
     }
@@ -130,26 +173,40 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene("LoadingScene");
     }
 
-    public bool IsPhaseUnlocked(int phaseIndex) =>
-        phaseIndex >= 0 && phaseIndex < phasesUnlocked.Length && phasesUnlocked[phaseIndex];
-
     // ── SAVE/LOAD ─────────────────────────────────────────────────
     public void SaveGame()
     {
         PlayerPrefs.SetInt("Vinyls", currentVinyls);
-        for (int i = 0; i < discFragments.Length; i++)
+        
+        for (int i = 1; i <= 4; i++)
+        {
             PlayerPrefs.SetInt($"Fragment{i}", discFragments[i] ? 1 : 0);
-        PlayerPrefs.SetInt("UpgDamage",    HasDamageUpgrade   ? 1 : 0);
-        PlayerPrefs.SetInt("UpgJump",      HasJumpUpgrade     ? 1 : 0);
-        PlayerPrefs.SetInt("UpgVitality",  HasVitalityUpgrade ? 1 : 0);
+            PlayerPrefs.SetInt($"PhaseUnlocked{i}", phasesUnlocked[i] ? 1 : 0);
+        }
+
+        PlayerPrefs.SetInt("UpgDamage",   HasDamageUpgrade   ? 1 : 0);
+        PlayerPrefs.SetInt("UpgJump",     HasJumpUpgrade     ? 1 : 0);
+        PlayerPrefs.SetInt("UpgVitality", HasVitalityUpgrade ? 1 : 0);
+        
         PlayerPrefs.Save();
     }
 
     public void LoadGame()
     {
         currentVinyls = PlayerPrefs.GetInt("Vinyls", 0);
-        for (int i = 0; i < discFragments.Length; i++)
+
+        phasesUnlocked[1] = true;
+
+        for (int i = 1; i <= 4; i++)
+        {
             discFragments[i] = PlayerPrefs.GetInt($"Fragment{i}", 0) == 1;
+            
+            if (PlayerPrefs.GetInt($"PhaseUnlocked{i}", 0) == 1)
+            {
+                phasesUnlocked[i] = true;
+            }
+        }
+
         HasDamageUpgrade   = PlayerPrefs.GetInt("UpgDamage",   0) == 1;
         HasJumpUpgrade     = PlayerPrefs.GetInt("UpgJump",     0) == 1;
         HasVitalityUpgrade = PlayerPrefs.GetInt("UpgVitality", 0) == 1;
@@ -159,5 +216,19 @@ public class GameManager : MonoBehaviour
         if (HasVitalityUpgrade) PlayerController.Instance?.ApplyVitalityUpgrade(20);
 
         OnVinylCountChanged?.Invoke(currentVinyls);
+    }
+
+    [ContextMenu("Reset Save Data")]
+    public void ResetSaveData()
+    {
+        PlayerPrefs.DeleteAll();
+        PlayerPrefs.Save();
+
+        for (int i = 0; i < discFragments.Length; i++)
+        {
+            discFragments[i] = false;
+            phasesUnlocked[i] = false;
+        }
+        phasesUnlocked[1] = true;
     }
 }

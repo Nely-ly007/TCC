@@ -11,12 +11,9 @@ public class BossDonna : MonoBehaviour, IDamageable
     // ── PROJÉTEIS ─────────────────────────────────────────────────
     [Header("Projéteis")]
     [SerializeField] private GameObject skateProjectilePrefab;
-    [SerializeField] private GameObject shockwavePrefab;
     [SerializeField] private int        skateDamage     = 15;
-    [SerializeField] private int        shockwaveDamage = 15;
     [SerializeField] private float      skateSpeed      = 6f;
     [SerializeField] private Transform  skateSpawnPoint;
-    [SerializeField] private Transform  waveSpawnPoint;
 
     // ── DROPS DE CURA ─────────────────────────────────────────────
     [Header("Drops de Cura")]
@@ -91,7 +88,7 @@ public class BossDonna : MonoBehaviour, IDamageable
     {
         player = PlayerController.Instance?.transform;
 
-        // Oculta a UI de HP ao carregar a cena (só exibe no ActivateBoss)
+        // Oculta a UI de HP ao carregar a cena
         bossHPUI?.Hide();
     }
 
@@ -117,24 +114,30 @@ public class BossDonna : MonoBehaviour, IDamageable
     {
         if (!isBossActive || isDead) return;
 
-        Debug.Log($"[BossDonna] Recebeu Beat: {beatNumber}");
-
-        if (beatNumber == 0) ExecuteAttackPattern();
+        if (beatNumber == 0)
+        {
+            ExecuteAttackPattern();
+        }
         else if (beatNumber == 2 && isPhase2)
-            StartCoroutine(WaveAttackCoroutine());
+        {
+            // Na Fase 2, realiza um ataque rápido extra no beat 2
+            StartCoroutine(SkateAttackCoroutine());
+        }
     }
 
     private void ExecuteAttackPattern()
     {
         if (isDead || isHurt) return;
-        
-        int maxPattern = isPhase2 ? 3 : 2;
-        switch (attackPattern % maxPattern)
+
+        if (isPhase2 && attackPattern % 2 == 1)
         {
-            case 0: StartCoroutine(SkateAttackCoroutine()); break;
-            case 1: StartCoroutine(WaveAttackCoroutine());  break;
-            case 2: StartCoroutine(DoubleSkateCoroutine()); break;
+            StartCoroutine(DoubleSkateCoroutine());
         }
+        else
+        {
+            StartCoroutine(SkateAttackCoroutine());
+        }
+
         attackPattern++;
     }
 
@@ -142,26 +145,15 @@ public class BossDonna : MonoBehaviour, IDamageable
     {
         anim?.SetTrigger("AttackSkate");
         PlaySFX(attackSFX);
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(0.2f);
         
-        // Spawn de segurança caso não tenha Animation Event na Timeline do Animator
         SpawnSkateEvent();
-    }
-
-    private IEnumerator WaveAttackCoroutine()
-    {
-        anim?.SetTrigger("AttackWave");
-        PlaySFX(attackSFX);
-        yield return new WaitForSeconds(0.3f);
-        
-        // Spawn de segurança caso não tenha Animation Event na Timeline do Animator
-        SpawnWaveEvent();
     }
 
     private IEnumerator DoubleSkateCoroutine()
     {
         yield return StartCoroutine(SkateAttackCoroutine());
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.3f);
         yield return StartCoroutine(SkateAttackCoroutine());
     }
 
@@ -184,19 +176,12 @@ public class BossDonna : MonoBehaviour, IDamageable
             : transform.position + Vector3.right;
 
         GameObject obj = Instantiate(skateProjectilePrefab, spawnPos, Quaternion.identity);
-        obj.GetComponent<SkateProjectile>()?.Init(dir, skateSpeed, skateDamage);
-    }
-
-    public void SpawnWaveEvent()
-    {
-        if (shockwavePrefab == null) return;
-
-        Vector3 spawnPos = waveSpawnPoint != null
-            ? waveSpawnPoint.position
-            : transform.position;
-
-        GameObject waveObj = Instantiate(shockwavePrefab, spawnPos, Quaternion.identity);
-        waveObj.GetComponent<Shockwave>()?.Init(Vector2.right, shockwaveDamage);
+        
+        SkateProjectile skateScript = obj.GetComponent<SkateProjectile>();
+        if (skateScript != null)
+        {
+            skateScript.Init(dir, skateSpeed, skateDamage);
+        }
     }
 
     public void TakeDamage(int damage)
@@ -224,7 +209,6 @@ public class BossDonna : MonoBehaviour, IDamageable
         }
         else
         {
-            // Reinicia a corrotina de Hurt para impedir trava em loop
             if (hurtCoroutine != null) StopCoroutine(hurtCoroutine);
             hurtCoroutine = StartCoroutine(HurtCoroutine());
         }
@@ -245,11 +229,9 @@ public class BossDonna : MonoBehaviour, IDamageable
     {
         isHurt = true;
         
-        // Garante a limpeza de triggers antigos acumulados no Animator
         if (anim != null)
         {
             anim.ResetTrigger("AttackSkate");
-            anim.ResetTrigger("AttackWave");
             anim.ResetTrigger("Hurt");
             anim.SetTrigger("Hurt");
         }

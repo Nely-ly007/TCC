@@ -3,17 +3,10 @@ using UnityEngine;
 /// <summary>
 /// POP ADVENTURE - SkateProjectile
 /// Projétil do ataque da Donna: patim que desliza pelo chão.
-///
-/// Setup do Prefab:
-/// 1. GameObject "SkateProjectile"
-/// 2. SpriteRenderer → sprite do patim
-/// 3. BoxCollider2D → Is Trigger: TRUE → ajusta ao sprite
-/// 4. Rigidbody2D → Gravity Scale: 0, Collision Detection: Continuous
-/// 5. Este script
 /// </summary>
 public class SkateProjectile : MonoBehaviour
 {
-    [SerializeField] private float lifetime = 4f; // tempo até sumir se não atingir nada
+    [SerializeField] private float lifetime = 4f;
 
     private Vector2 direction;
     private float   speed;
@@ -32,9 +25,11 @@ public class SkateProjectile : MonoBehaviour
 
         // Vira o sprite na direção do movimento
         if (direction.x < 0)
+        {
             transform.localScale = new Vector3(-Mathf.Abs(transform.localScale.x),
                 transform.localScale.y,
                 transform.localScale.z);
+        }
 
         Destroy(gameObject, lifetime);
     }
@@ -47,12 +42,32 @@ public class SkateProjectile : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
+        // Ignora colisões com o próprio Boss ou com outros projéteis
+        if (other.CompareTag("Boss") || other.GetComponent<SkateProjectile>() != null) return;
+
+        // Procura o PlayerController no objeto que colidiu ou nos parentes/filhos dele
+        PlayerController player = other.GetComponent<PlayerController>();
+        if (player == null)
         {
-            other.GetComponent<PlayerController>()?.TakeDamage(damage);
+            player = other.GetComponentInParent<PlayerController>();
+        }
+
+        if (player != null || other.CompareTag("Player"))
+        {
+            Debug.Log($"[SkateProjectile] ACERTOU O PLAYER! Aplicando {damage} de dano.");
+
+            if (player != null)
+            {
+                player.TakeDamage(damage);
+            }
+            else
+            {
+                // Fallback de segurança se o script no Player tiver outro nome de método
+                other.gameObject.SendMessage("TakeDamage", damage, SendMessageOptions.DontRequireReceiver);
+            }
+
             Destroy(gameObject);
         }
-        // Destrói ao bater em chão/parede (Layer "Ground")
         else if (other.gameObject.layer == LayerMask.NameToLayer("Ground"))
         {
             Destroy(gameObject);

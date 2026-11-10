@@ -14,10 +14,8 @@ public class PhaseNavigation : MonoBehaviour
 
     private void OnEnable()
     {
-        // Garante a atualização sempre que o painel ou objeto for ativado
         RefreshButtons();
 
-        // Inscreve-se usando a referência direta do método
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnFragmentCollected += OnFragmentCollectedHandler;
@@ -26,7 +24,6 @@ public class PhaseNavigation : MonoBehaviour
 
     private void OnDisable()
     {
-        // Cancela a inscrição corretamente
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnFragmentCollected -= OnFragmentCollectedHandler;
@@ -35,14 +32,14 @@ public class PhaseNavigation : MonoBehaviour
 
     void Start()
     {
-        // Conecta os botões
         btnFase1?.onClick.AddListener(() => LoadPhase(1));
         btnFase2?.onClick.AddListener(() => LoadPhase(2));
         btnFase3?.onClick.AddListener(() => LoadPhase(3));
         btnFase4?.onClick.AddListener(() => LoadPhase(4));
+
+        RefreshButtons();
     }
 
-    // Método nomeado para o evento
     private void OnFragmentCollectedHandler(int fragmentId)
     {
         RefreshButtons();
@@ -65,23 +62,29 @@ public class PhaseNavigation : MonoBehaviour
     {
         if (GameManager.Instance == null) return;
 
-        SetButton(btnFase1, GameManager.Instance.IsPhaseUnlocked(1));
-        SetButton(btnFase2, GameManager.Instance.IsPhaseUnlocked(2));
-        SetButton(btnFase3, GameManager.Instance.IsPhaseUnlocked(3));
-        SetButton(btnFase4, GameManager.Instance.IsPhaseUnlocked(4));
+        SetButton(btnFase1, GameManager.Instance.IsPhaseUnlocked(1), GameManager.Instance.HasFragment(1));
+        SetButton(btnFase2, GameManager.Instance.IsPhaseUnlocked(2), GameManager.Instance.HasFragment(2));
+        SetButton(btnFase3, GameManager.Instance.IsPhaseUnlocked(3), GameManager.Instance.HasFragment(3));
+        SetButton(btnFase4, GameManager.Instance.IsPhaseUnlocked(4), GameManager.Instance.HasFragment(4));
     }
 
-    private void SetButton(Button btn, bool unlocked)
+    private void SetButton(Button btn, bool unlocked, bool hasFragment)
     {
         if (btn == null) return;
-        
+
         btn.interactable = unlocked;
 
-        // Atualiza o alpha do CanvasGroup (se existir)
         CanvasGroup cg = btn.GetComponent<CanvasGroup>();
         if (cg != null)
         {
             cg.alpha = unlocked ? 1f : 0.5f;
+        }
+
+        // Procura a imagem do fragmento dentro do botão para ativar/desativar
+        Transform fragmentIcon = btn.transform.Find("FragmentIcon");
+        if (fragmentIcon != null)
+        {
+            fragmentIcon.gameObject.SetActive(hasFragment);
         }
     }
 }
