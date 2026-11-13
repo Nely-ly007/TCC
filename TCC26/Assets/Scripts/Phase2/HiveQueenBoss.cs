@@ -5,16 +5,6 @@ namespace PopAdventure.Hive
 {
     /// <summary>
     /// Rainha Abelha — boss da Fase 2. Todos os ataques saem das batidas/compassos (4/4, 108 BPM).
-    ///
-    /// FASE 1 (100% → 50%), ciclo de 4 compassos:
-    ///   Volley   : leque de 3 ferrões nas batidas 2 e 4.
-    ///   SlamPrep : alinha no jogador, pisca na batida 3, mergulha na batida 4.
-    ///   Grounded : IMPACTO exatamente no tempo 1 (ondas rasteiras, pule!). Fica atordoada no chão
-    ///              (dano x1.5), chama abelhas na batida 3 e sobe na batida 4.
-    ///   Rain     : chuva de mel do teto, uma gota por batida (uma mira no jogador na batida 3).
-    /// FASE 2 (≤ 50%, "ROYAL RAGE"), ciclo de 5 compassos: Volley+ (5 ferrões), SlamPrep, Grounded+ (onda dupla),
-    ///   Rain+ (2 gotas/batida) e Dash (investida horizontal baixa — pule por cima).
-    /// Cura: cai uma nota (+15 HP) aos 66% e outra aos 33% da vida da Rainha (máx. 2 por luta).
     /// </summary>
     public class HiveQueenBoss : MonoBehaviour
     {
@@ -31,9 +21,9 @@ namespace PopAdventure.Hive
         private HiveContactDamage contact;
         private CircleCollider2D hurt;
         private Transform visual;
-        private SpriteRenderer body;
+        private SpriteRenderer[] visualRenderers;
         private Transform wingA, wingB;
-        private float spriteScale = 1f;   // multiplicador do sprite personalizado (HiveLevelBootstrap ▸ Boss Sprite Scale)
+        private Vector3 baseVisualScale = Vector3.one;
 
         private float minX, maxX, floorY, ceilY, centerX, hoverY, restY;
         private Vector2 pos, vel;
@@ -47,7 +37,7 @@ namespace PopAdventure.Hive
         private float dashTrail;
         private Vector2 dashStart;
 
-        public void Init(HiveQueenArena a, float x0, float x1, float floor, float ceil, float hp)
+        public void Init(HiveQueenArena a, float x0, float x1, float floor, float ceil, float hp, GameObject prefab = null, Vector3? prefabScale = null)
         {
             arena = a;
             minX = x0; maxX = x1; floorY = floor; ceilY = ceil;
@@ -76,24 +66,36 @@ namespace PopAdventure.Hive
             contact.knockback = 10f;
             contact.active = false;
 
-            var v = new GameObject("Visual");
-            v.transform.SetParent(transform, false);
-            visual = v.transform;
-            body = v.AddComponent<SpriteRenderer>();
-            body.sprite = HiveSpriteFactory.Queen();
-            body.sortingOrder = 10;
-
-            wingA = MakeWing(-0.35f, 0.95f, 9, 2.1f);
-            wingB = MakeWing(0.15f, 1.05f, 11, 2.3f);
-
-            // sprite próprio do boss (HiveLevelBootstrap ▸ Boss Sprite): troca só o visual, o comportamento é o mesmo
-            var boot = HiveLevelBootstrap.Instance;
-            if (boot != null && boot.bossSprite != null)
+            if (prefab != null)
             {
-                body.sprite = boot.bossSprite;
-                spriteScale = Mathf.Max(0.05f, boot.bossSpriteScale);
-                foreach (var wr in visual.GetComponentsInChildren<SpriteRenderer>())
-                    if (wr != body) wr.enabled = false;
+                var v = Instantiate(prefab, transform);
+                v.name = "Visual";
+                v.transform.localPosition = Vector3.zero;
+                v.transform.localRotation = Quaternion.identity;
+                visual = v.transform;
+
+                Vector3 s = prefabScale ?? Vector3.one;
+                baseVisualScale = new Vector3(
+                    Mathf.Abs(v.transform.localScale.x * s.x),
+                    Mathf.Abs(v.transform.localScale.y * s.y),
+                    1f
+                );
+
+                visualRenderers = visual.GetComponentsInChildren<SpriteRenderer>(true);
+            }
+            else
+            {
+                var v = new GameObject("Visual");
+                v.transform.SetParent(transform, false);
+                visual = v.transform;
+                var body = v.AddComponent<SpriteRenderer>();
+                body.sprite = HiveSpriteFactory.Queen();
+                body.sortingOrder = 10;
+
+                wingA = MakeWing(-0.35f, 0.95f, 9, 2.1f);
+                wingB = MakeWing(0.15f, 1.05f, 11, 2.3f);
+
+                visualRenderers = visual.GetComponentsInChildren<SpriteRenderer>(true);
             }
         }
 
@@ -107,6 +109,16 @@ namespace PopAdventure.Hive
             sr.sprite = HiveSpriteFactory.Wing();
             sr.sortingOrder = order;
             return w.transform;
+        }
+
+        private void SetVisualColor(Color c)
+        {
+            if (visualRenderers == null) return;
+            for (int i = 0; i < visualRenderers.Length; i++)
+            {
+                if (visualRenderers[i] != null)
+                    visualRenderers[i].color = c;
+            }
         }
 
         private void OnEnable() { HiveBeatDriver.OnBeat += HandleBeat; }
@@ -353,7 +365,7 @@ namespace PopAdventure.Hive
                     HiveSfx.Play(HiveSfxId.EnemyDie, 0.4f, Random.Range(0.7f, 1.3f));
                     HiveBridge.ShakeCamera(0.2f, 0.15f);
                 }
-                body.color = Color.Lerp(Color.white, HivePalette.Pink, Mathf.PingPong(t * 8f, 1f));
+                SetVisualColor(Color.Lerp(Color.white, HivePalette.Pink, Mathf.PingPong(t * 8f, 1f)));
                 yield return null;
             }
             HiveFx.Burst(pos, HivePalette.Gold, 60, 11f, 1.1f, 0.3f, 2f);
@@ -377,30 +389,30 @@ namespace PopAdventure.Hive
             switch (mode)
             {
                 case Mode.Intro:
-                {
-                    pos = Vector2.MoveTowards(pos, new Vector2(centerX, hoverY), 5f * dt);
-                    if ((pos - new Vector2(centerX, hoverY)).sqrMagnitude < 0.05f)
                     {
-                        mode = Mode.Hover;
-                        dmg.invulnerable = false;
-                        contact.active = true;
-                        HiveFx.Ring(pos, HivePalette.Gold, 6f, 0.6f);
+                        pos = Vector2.MoveTowards(pos, new Vector2(centerX, hoverY), 5f * dt);
+                        if ((pos - new Vector2(centerX, hoverY)).sqrMagnitude < 0.05f)
+                        {
+                            mode = Mode.Hover;
+                            dmg.invulnerable = false;
+                            contact.active = true;
+                            HiveFx.Ring(pos, HivePalette.Gold, 6f, 0.6f);
+                        }
+                        break;
                     }
-                    break;
-                }
                 case Mode.Hover:
-                {
-                    float tx = centerX + Mathf.Sin((float)(sb * Mathf.PI / 4.0)) * halfW * 0.55f;
-                    float ty = hoverY + Mathf.Sin((float)(sb * Mathf.PI)) * 0.3f;
-                    pos = Vector2.SmoothDamp(pos, new Vector2(tx, ty), ref vel, 0.28f);
-                    break;
-                }
+                    {
+                        float tx = centerX + Mathf.Sin((float)(sb * Mathf.PI / 4.0)) * halfW * 0.55f;
+                        float ty = hoverY + Mathf.Sin((float)(sb * Mathf.PI)) * 0.3f;
+                        pos = Vector2.SmoothDamp(pos, new Vector2(tx, ty), ref vel, 0.28f);
+                        break;
+                    }
                 case Mode.Align:
-                {
-                    float tx = Mathf.Clamp(pp.x, minX, maxX);
-                    pos = Vector2.SmoothDamp(pos, new Vector2(tx, hoverY + 0.6f), ref vel, 0.16f);
-                    break;
-                }
+                    {
+                        float tx = Mathf.Clamp(pp.x, minX, maxX);
+                        pos = Vector2.SmoothDamp(pos, new Vector2(tx, hoverY + 0.6f), ref vel, 0.16f);
+                        break;
+                    }
                 case Mode.Dive:
                     pos.y = Mathf.Max(restY, pos.y - diveSpeed * dt);
                     break;
@@ -414,16 +426,16 @@ namespace PopAdventure.Hive
                     pos = Vector2.SmoothDamp(pos, dashStart, ref vel, 0.2f);
                     break;
                 case Mode.Dash:
-                {
-                    pos.x = Mathf.Clamp(pos.x + dashDir * dashSpeed * dt, minX, maxX);
-                    dashTrail -= dt;
-                    if (dashTrail <= 0f)
                     {
-                        dashTrail = 0.04f;
-                        HiveFx.Burst(pos, HivePalette.Gold, 2, 1.5f, 0.35f, 0.3f);
+                        pos.x = Mathf.Clamp(pos.x + dashDir * dashSpeed * dt, minX, maxX);
+                        dashTrail -= dt;
+                        if (dashTrail <= 0f)
+                        {
+                            dashTrail = 0.04f;
+                            HiveFx.Burst(pos, HivePalette.Gold, 2, 1.5f, 0.35f, 0.3f);
+                        }
+                        break;
                     }
-                    break;
-                }
             }
 
             transform.position = pos;
@@ -434,7 +446,14 @@ namespace PopAdventure.Hive
 
             squashCur = Mathf.Lerp(squashCur, squashTarget, 10f * dt);
             float pulse = 1f + 0.04f * HiveBeatDriver.Pulse;
-            visual.localScale = new Vector3(flip * squashCur * pulse * spriteScale, squashCur * pulse * spriteScale, 1f);
+            if (visual != null)
+            {
+                visual.localScale = new Vector3(
+                    flip * squashCur * pulse * baseVisualScale.x,
+                    squashCur * pulse * baseVisualScale.y,
+                    1f
+                );
+            }
             hurt.radius = BodyRadius * squashCur;
 
             // cor (o flash de dano em HiveDamageable.LateUpdate sobrepõe durante o hit)
@@ -447,12 +466,15 @@ namespace PopAdventure.Hive
                     c = Color.Lerp(c, HivePalette.Pink, 0.5f + 0.5f * Mathf.Sin(Time.time * 34f));
                 if (dmg.invulnerable)
                     c.a = 0.55f + 0.25f * Mathf.Sin(Time.time * 20f);
-                body.color = c;
+                SetVisualColor(c);
             }
 
-            float flap = Mathf.Sin(Time.time * (mode == Mode.Grounded ? 20f : 55f)) * 20f;
-            wingA.localRotation = Quaternion.Euler(0f, 0f, 30f + flap);
-            wingB.localRotation = Quaternion.Euler(0f, 0f, 55f - flap);
+            if (wingA != null && wingB != null)
+            {
+                float flap = Mathf.Sin(Time.time * (mode == Mode.Grounded ? 20f : 55f)) * 20f;
+                wingA.localRotation = Quaternion.Euler(0f, 0f, 30f + flap);
+                wingB.localRotation = Quaternion.Euler(0f, 0f, 55f - flap);
+            }
         }
     }
 }

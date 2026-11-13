@@ -24,9 +24,7 @@ public class RhythmManager : MonoBehaviour
     public UnityEvent OnBeat3;
     public UnityEvent OnHalfBeat;
 
-    [Header("Feedback Visual")]
-    [SerializeField] private bool enableScreenPulse = true;
-    [SerializeField] private float pulseIntensity = 0.05f;
+    
 
     // Tempo interno
     private double nextBeatTime;
@@ -214,16 +212,9 @@ public class RhythmManager : MonoBehaviour
         {
             OnBeat3?.Invoke();
         }
-
-        // Feedback visual
-        if (enableScreenPulse)
-        {
-            CameraShake.Instance?.Pulse(pulseIntensity);
-        }
-
-        // Próximo beat
-        currentBeat = (currentBeat + 1) % 4;
     }
+        // Feedback visual
+       
 
     /// <summary>
     /// Retorna o progresso em direção ao próximo beat.

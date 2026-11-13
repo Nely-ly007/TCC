@@ -1,0 +1,816 @@
+{
+ "items": [
+  {
+   "path": "backdrops/mt_backdrop_auditorium_tall.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "backdrops/mt_backdrop_masks_stage.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "boss/mt_mask_halfface.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "boss/mt_puppeteer_master.png",
+   "ppu": 55.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "collectibles/mt_balloon_red.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "collectibles/mt_chest.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "collectibles/mt_fragment_gold.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "collectibles/mt_lips_a.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "collectibles/mt_lips_b.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "collectibles/mt_note_heal.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "collectibles/mt_roses.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "collectibles/mt_roses_bouquet.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "collectibles/mt_star_gold.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "collectibles/mt_star_small.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "collectibles/mt_trophy_gem.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "collectibles/mt_vinyl_bw.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "columns/mt_column_capital_a.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "columns/mt_column_dark_d.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "columns/mt_column_red_gold.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "columns/mt_column_tall_b.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "columns/mt_column_tall_c.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "columns/mt_pedestal_curtain.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "columns/mt_pillar_diamond_black.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_balcony_railing.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_balustrade_box.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_banner_fleur_big.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_banner_fleur_small.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_banner_hat.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_banner_red_diamond.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_box_seat_stage.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_curtain_drape_c.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_curtain_grand.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_curtain_swag_long.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_marquee_arch.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_marquee_star.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_stage_box_small.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_stage_proscenium.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "decor/mt_stage_spot_oval.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "enemies/mt_doll_gothic.png",
+   "ppu": 130.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "enemies/mt_dummy_dance_a.png",
+   "ppu": 130.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "enemies/mt_dummy_dance_b.png",
+   "ppu": 130.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "enemies/mt_jester_big.png",
+   "ppu": 120.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "enemies/mt_marionette_ballerina.png",
+   "ppu": 150.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "enemies/mt_marionette_jester.png",
+   "ppu": 150.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "enemies/mt_marionette_pierrot.png",
+   "ppu": 150.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "enemies/mt_marionette_wood.png",
+   "ppu": 150.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "hazards/mt_hand_emerge.png",
+   "ppu": 110.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "hazards/mt_saw_mask_wheel.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "hazards/mt_spikes_curtain.png",
+   "ppu": 110.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "lighting/mt_candelabra_lantern.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "lighting/mt_candelabra_small.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "lighting/mt_chandelier.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "lighting/mt_lamp_post.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "lighting/mt_spotlight_a.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "lighting/mt_spotlight_b.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "lighting/mt_spotlight_stand.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_balustrade_low.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_platform_curtain_brick_a.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_platform_curtain_brick_b.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_platform_curtain_brick_c.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_platform_curtain_brick_d.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_platform_curtain_diamond.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_platform_lattice_a.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_platform_lattice_b.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_platform_lattice_c.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_ramp_curtain.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_ramp_lattice.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_stage_trim_block.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_valance_fringe_b.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_valance_swag_a.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "platforms/mt_valance_swag_d.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 1.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_armchair.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_birdcage.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_chaise.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_crate_x.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_gramophone.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_mask_on_stick.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_mask_white.png",
+   "ppu": 100.0,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": false
+  },
+  {
+   "path": "props/mt_masks_pair.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_rope_barrier.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_seat_red_1.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_seat_red_2.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_seat_red_3.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_seat_red_4.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_sign_exclamation.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_stool_red.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_top_hat.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "props/mt_top_hat_rose.png",
+   "ppu": 80.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "stairs/mt_stairs_red_carpet.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "tiles/greybox/mt_grey_f1_fill.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/greybox/mt_grey_f1_plat.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/greybox/mt_grey_f1_top.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/greybox/mt_grey_f2_fill.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/greybox/mt_grey_f2_plat.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/greybox/mt_grey_f2_top.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/greybox/mt_grey_f3_fill.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/greybox/mt_grey_f3_plat.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/greybox/mt_grey_f3_top.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/mt_tile_brick.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/mt_tile_brick_b.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/mt_tile_lattice_fill.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/mt_tile_panel_diamond.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/mt_tile_top_curtain_a.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/mt_tile_top_curtain_b.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/mt_tile_top_lattice.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "tiles/mt_tile_window.png",
+   "ppu": 64,
+   "px": 0.5,
+   "py": 0.5,
+   "tile": true
+  },
+  {
+   "path": "walls/mt_arch_doorway.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "walls/mt_brick_wall_a.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "walls/mt_brick_wall_arch_window.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "walls/mt_brick_wall_b.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "walls/mt_curtain_cross_panel.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "walls/mt_plinth_plain.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "walls/mt_wall_gothic_window_balcony.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "walls/mt_wall_panel_diamond.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "walls/mt_window_arch_red.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  },
+  {
+   "path": "walls/mt_window_tall_gold.png",
+   "ppu": 64.0,
+   "px": 0.5,
+   "py": 0.0,
+   "tile": false
+  }
+ ]
+}

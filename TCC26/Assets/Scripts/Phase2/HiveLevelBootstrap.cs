@@ -41,10 +41,10 @@ namespace PopAdventure.Hive
         public string groundTag = "";
 
         [Header("Boss (visual próprio)")]
-        [Tooltip("Arraste aqui o sprite do seu boss (um frame do sprite recortado). Vazio = usa a Rainha desenhada por código. Troca só o visual; ataques, vida e fases continuam iguais.")]
-        public Sprite bossSprite;
-        [Tooltip("Tamanho do sprite do boss. Ajuste até ele ficar com ~3 unidades de altura.")]
-        public float bossSpriteScale = 1f;
+        [Tooltip("Arraste aqui o Prefab visual/animado do seu boss. Vazio = usa a Rainha desenhada por código. Troca só o visual; ataques, vida e fases continuam iguais.")]
+        public GameObject bossPrefab;
+        [Tooltip("Tamanho do prefab do boss. Ajuste até ele ficar com ~3 unidades de altura.")]
+        public float bossPrefabScale = 1f;
 
         [Header("Balanceamento")]
         [Tooltip("Velocidade das plataformas de ritmo: batidas por caractere do pattern. 1 = rápido (difícil), 2 = meio tempo (padrão, mais fácil), 4 = bem lento.")]
@@ -284,15 +284,15 @@ namespace PopAdventure.Hive
                     break;
 
                 case HiveMarkerType.VinylRow:
-                {
-                    int n = Mathf.Max(1, m.count);
-                    for (int i = 0; i < n; i++)
                     {
-                        HivePickup.Create(HivePickupType.Vinyl, m.VinylPoint(i), 1, false, gPickups);
-                        vinylsTotal++;
+                        int n = Mathf.Max(1, m.count);
+                        for (int i = 0; i < n; i++)
+                        {
+                            HivePickup.Create(HivePickupType.Vinyl, m.VinylPoint(i), 1, false, gPickups);
+                            vinylsTotal++;
+                        }
+                        break;
                     }
-                    break;
-                }
 
                 case HiveMarkerType.HealNote:
                     HivePickup.Create(HivePickupType.Heal, pos, 15, false, gPickups);

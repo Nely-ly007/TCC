@@ -210,7 +210,6 @@ public class PlayerController : MonoBehaviour
         currentHP = Mathf.Max(0, currentHP - amount);
         OnHealthChanged?.Invoke(currentHP, TotalMaxHP);
         PlaySFX(damageSFX);
-        CameraShake.Instance?.Shake(0.2f, 0.15f);
         StartCoroutine(DamageFlash());
         if (currentHP <= 0) HandleDeath();
     }
