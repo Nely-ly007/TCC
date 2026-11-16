@@ -30,8 +30,8 @@ namespace PopAdventure.Fase3
             if (target == null) return;
 
             Component c = target as Component;
-            // Substituído GetInstanceID() por GetHashCode() para evitar o aviso/erro de obsolescência
-            int id = c != null ? c.GetHashCode() : other.GetHashCode();
+            // GetInstanceID() é único por objeto — corrige falso-positivo de deduplicação
+            int id = c != null ? c.GetInstanceID() : other.GetInstanceID();
             if (!alreadyHit.Add(id)) return;
 
             target.TakeDamage(damage, transform.position);
