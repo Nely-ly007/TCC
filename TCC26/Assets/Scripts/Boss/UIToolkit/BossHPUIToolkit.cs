@@ -3,10 +3,8 @@ using UnityEngine.UIElements;
 using System.Collections;
 
 /// <summary>
-/// POP ADVENTURE - BossHPUIToolkit v3
-/// Fix: rootVisualElement só fica disponível após o UIDocument processar o UXML.
-/// Solução: espera o root estar pronto com um check por frame (IEnumerator),
-/// depois aplica qualquer chamada Show/UpdateHP que chegou antes do root estar pronto.
+/// POP ADVENTURE - BossHPUIToolkit v4
+/// Fix: phaseDot2 escondido por padrão; só aparece quando ActivatePhase2() é chamado (boss a 50% HP).
 /// </summary>
 [RequireComponent(typeof(UIDocument))]
 public class BossHPUIToolkit : MonoBehaviour
@@ -47,13 +45,11 @@ public class BossHPUIToolkit : MonoBehaviour
 
     void Start()
     {
-        // UIDocument pode não ter processado o UXML ainda — espera por frame
         StartCoroutine(WaitForRoot());
     }
 
     private IEnumerator WaitForRoot()
     {
-        // Aguarda até rootVisualElement não ser null e ter filhos (UXML carregado)
         while (uiDoc.rootVisualElement == null ||
                uiDoc.rootVisualElement.childCount == 0)
         {
@@ -72,19 +68,26 @@ public class BossHPUIToolkit : MonoBehaviour
         if (bossNameLabel != null)
             bossNameLabel.text = bossDisplayName;
 
+        // FIX: esconde o segundo ponto — só aparece ao entrar na Fase 2
+        if (phaseDot2 != null)
+            phaseDot2.style.display = DisplayStyle.None;
+
+        // Esconde label de fase também
+        if (phaseLabel != null)
+            phaseLabel.style.display = DisplayStyle.None;
+
         rootReady = true;
 
-        // Esconde por padrão
+        // Esconde HUD por padrão
         root.style.display = DisplayStyle.None;
 
-        // Aplica Show pendente (BossDonna.ActivateBoss chamou antes do root estar pronto)
+        // Aplica Show pendente
         if (pendingShow)
         {
             pendingShow = false;
             Show(pendingHP, pendingMax);
         }
 
-        // Log de debug — confirma quais elementos foram encontrados
         Debug.Log($"[BossHPUIToolkit] Root pronto. " +
                   $"barFill={barFill != null}, hpText={hpText != null}, " +
                   $"bossName={bossNameLabel != null}");
@@ -95,7 +98,6 @@ public class BossHPUIToolkit : MonoBehaviour
     {
         if (!rootReady)
         {
-            // Root ainda não está pronto — guarda para aplicar depois
             pendingShow = true;
             pendingHP   = currentHP;
             pendingMax  = max;
@@ -152,8 +154,12 @@ public class BossHPUIToolkit : MonoBehaviour
         if (isPhase2 || !rootReady) return;
         isPhase2 = true;
 
+        // Revela o segundo ponto
         if (phaseDot2 != null)
+        {
+            phaseDot2.style.display = DisplayStyle.Flex;
             phaseDot2.style.backgroundColor = new StyleColor(new Color(1f, 0.31f, 0.31f));
+        }
 
         if (phaseLabel != null)
             phaseLabel.style.display = DisplayStyle.Flex;
