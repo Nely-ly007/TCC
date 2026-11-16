@@ -4892,7 +4892,7 @@ MonoBehaviour:
   fragmentActiveColor: {r: 1, g: 0.85, b: 0, a: 1}
   vinylCountText: {fileID: 0}
   fragmentCountText: {fileID: 0}
-  hubMusic: {fileID: 0}
+  hubMusic: {fileID: 8300000, guid: 4508b7542e5e8324e97d91c71e066f0f, type: 3}
   hubBPM: 0
 --- !u!114 &928285542
 MonoBehaviour:
