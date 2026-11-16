@@ -136,20 +136,24 @@ public class CameraShake : MonoBehaviour
     /// Tremor independente para dano e explosões.
     /// </summary>
     public void Shake(float duration = -1f, float magnitude = -1f)
-    {
-        if (duration < 0)
-            duration = defaultShakeDuration;
+{
+    if (duration < 0)
+        duration = defaultShakeDuration;
 
-        if (magnitude < 0)
-            magnitude = defaultShakeMagnitude;
+    if (magnitude < 0)
+        magnitude = defaultShakeMagnitude;
 
-        if (shakeCoroutine != null)
-            StopCoroutine(shakeCoroutine);
+    // Limita o tremor para evitar movimentos exagerados.
+    duration = Mathf.Clamp(duration, 0.01f, 0.08f);
+    magnitude = Mathf.Clamp(magnitude, 0f, 0.02f);
 
-        shakeCoroutine = StartCoroutine(
-            DoShake(duration, magnitude)
-        );
-    }
+    if (shakeCoroutine != null)
+        StopCoroutine(shakeCoroutine);
+
+    shakeCoroutine = StartCoroutine(
+        DoShake(duration, magnitude)
+    );
+}
 
     private IEnumerator DoShake(float duration, float magnitude)
     {
