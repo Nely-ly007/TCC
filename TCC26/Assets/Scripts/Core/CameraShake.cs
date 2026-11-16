@@ -14,8 +14,8 @@ public class CameraShake : MonoBehaviour
     public static CameraShake Instance { get; private set; }
 
     [Header("Configurações do Shake")]
-    [SerializeField] private float defaultShakeDuration = 0.1f;
-    [SerializeField] private float defaultShakeMagnitude = 0.1f;
+    [SerializeField] private float defaultShakeDuration = 0.06f;
+    [SerializeField] private float defaultShakeMagnitude = 0.015f;
 
     [Header("Configurações do Pulse")]
     [SerializeField] private float pulseIntensity = 0.05f;
