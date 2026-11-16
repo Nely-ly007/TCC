@@ -1,3 +1,4 @@
+
 using UnityEngine;
 
 namespace PopAdventure.World
@@ -7,6 +8,7 @@ namespace PopAdventure.World
         [Header("Sprites")]
         [Tooltip("Sprite quando o Checkpoint ainda NÃO foi ativado (Preto/Desativado)")]
         [SerializeField] private Sprite spriteInactive;
+
         [Tooltip("Sprite quando o Checkpoint FOI ativado (Original/Colorido)")]
         [SerializeField] private Sprite spriteActive;
 
@@ -23,7 +25,7 @@ namespace PopAdventure.World
             sr = GetComponent<SpriteRenderer>();
             audioSource = GetComponent<AudioSource>();
 
-            // Configura o estado inicial (Desativado / Preto)
+            // Configura o estado inicial
             if (sr != null)
             {
                 if (spriteInactive != null)
@@ -32,8 +34,7 @@ namespace PopAdventure.World
                 }
                 else
                 {
-                    // Caso não tenha colocado um sprite desativado, escurece o sprite atual (ficando preto)
-                    sr.color = Color.black; 
+                    sr.color = Color.black;
                 }
             }
         }
@@ -42,35 +43,70 @@ namespace PopAdventure.World
         {
             if (isActivated) return;
 
-            if (other.CompareTag("Player"))
+            if (!other.CompareTag("Player")) return;
+
+            // Verifica se existe um Player válido
+            PlayerController player = other.GetComponent<PlayerController>();
+
+            if (player == null)
+                player = other.GetComponentInParent<PlayerController>();
+
+            if (player == null)
             {
-                isActivated = true;
+                Debug.LogWarning(
+                    "[Checkpoint] PlayerController não encontrado!"
+                );
+                return;
+            }
 
-                // Troca para o sprite ativado / devolve a cor normal
-                if (sr != null)
-                {
-                    if (spriteActive != null) sr.sprite = spriteActive;
-                    sr.color = Color.white; // Restaura a cor original
-                }
+            isActivated = true;
 
-                if (activateEffect != null)
-                    activateEffect.Play();
+            // ATUALIZA A POSIÇÃO DE RESPAWN
+            player.SetCheckpoint(transform.position);
 
-                if (activateSFX != null && audioSource != null)
-                    audioSource.PlayOneShot(activateSFX);
+            // Ativa visualmente o checkpoint
+            if (sr != null)
+            {
+                if (spriteActive != null)
+                    sr.sprite = spriteActive;
 
-                // Salva o progresso
-                if (GameManager.Instance != null)
-                {
-                    GameManager.Instance.SaveGame();
-                    Debug.Log($"[Checkpoint] Progresso salvo pelo GameManager na posição: {transform.position}");
-                }
-                else
-                {
-                    PlayerPrefs.SetFloat("Checkpoint_X", transform.position.x);
-                    PlayerPrefs.SetFloat("Checkpoint_Y", transform.position.y);
-                    PlayerPrefs.Save();
-                }
+                sr.color = Color.white;
+            }
+
+            // Efeito visual
+            if (activateEffect != null)
+                activateEffect.Play();
+
+            // Som
+            if (activateSFX != null && audioSource != null)
+                audioSource.PlayOneShot(activateSFX);
+
+            // Salva o progresso
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.SaveGame();
+
+                Debug.Log(
+                    $"[Checkpoint] Ativado! Respawn definido em: {transform.position}"
+                );
+            }
+            else
+            {
+                PlayerPrefs.SetFloat(
+                    "Checkpoint_X",
+                    transform.position.x
+                );
+
+                PlayerPrefs.SetFloat(
+                    "Checkpoint_Y",
+                    transform.position.y
+                );
+
+                PlayerPrefs.Save();
+
+                Debug.Log(
+                    $"[Checkpoint] Posição salva: {transform.position}"
+                );
             }
         }
     }
