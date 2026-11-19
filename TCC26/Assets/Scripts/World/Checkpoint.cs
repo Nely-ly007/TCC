@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 namespace PopAdventure.World
@@ -16,6 +15,10 @@ namespace PopAdventure.World
         [SerializeField] private ParticleSystem activateEffect;
         [SerializeField] private AudioClip activateSFX;
 
+        [Header("Cores do Burst (Fase 1 — Disco Fever)")]
+        [SerializeField] private Color burstColor = new Color(1.00f, 0.22f, 0.60f); // rosa disco
+        [SerializeField] private Color ringColor = new Color(1.00f, 0.85f, 0.20f); // dourado
+
         private bool isActivated = false;
         private SpriteRenderer sr;
         private AudioSource audioSource;
@@ -25,55 +28,50 @@ namespace PopAdventure.World
             sr = GetComponent<SpriteRenderer>();
             audioSource = GetComponent<AudioSource>();
 
-            // Configura o estado inicial
             if (sr != null)
             {
                 if (spriteInactive != null)
-                {
                     sr.sprite = spriteInactive;
-                }
                 else
-                {
                     sr.color = Color.black;
-                }
             }
         }
 
         private void OnTriggerEnter2D(Collider2D other)
         {
             if (isActivated) return;
-
             if (!other.CompareTag("Player")) return;
 
-            // Verifica se existe um Player válido
             PlayerController player = other.GetComponent<PlayerController>();
-
             if (player == null)
                 player = other.GetComponentInParent<PlayerController>();
 
             if (player == null)
             {
-                Debug.LogWarning(
-                    "[Checkpoint] PlayerController não encontrado!"
-                );
+                Debug.LogWarning("[Checkpoint] PlayerController não encontrado!");
                 return;
             }
 
             isActivated = true;
 
-            // ATUALIZA A POSIÇÃO DE RESPAWN
+            // Respawn
             player.SetCheckpoint(transform.position);
 
-            // Ativa visualmente o checkpoint
+            // Visual
             if (sr != null)
             {
                 if (spriteActive != null)
                     sr.sprite = spriteActive;
-
                 sr.color = Color.white;
             }
 
-            // Efeito visual
+            // ── Efeitos visuais ──────────────────────────────────
+            Vector2 top = (Vector2)transform.position + Vector2.up * 1.1f;
+            GameFx.Burst(top, burstColor, 16, 5f, 0.7f, 0.2f, 2f);
+            GameFx.Ring(top, ringColor, 2.2f, 0.5f);
+            GameOverlay.Toast("CHECKPOINT", burstColor, 1.4f);
+
+            // ParticleSystem legado (mantido caso esteja configurado no prefab)
             if (activateEffect != null)
                 activateEffect.Play();
 
@@ -81,32 +79,18 @@ namespace PopAdventure.World
             if (activateSFX != null && audioSource != null)
                 audioSource.PlayOneShot(activateSFX);
 
-            // Salva o progresso
+            // Salva progresso
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.SaveGame();
-
-                Debug.Log(
-                    $"[Checkpoint] Ativado! Respawn definido em: {transform.position}"
-                );
+                Debug.Log($"[Checkpoint] Ativado! Respawn definido em: {transform.position}");
             }
             else
             {
-                PlayerPrefs.SetFloat(
-                    "Checkpoint_X",
-                    transform.position.x
-                );
-
-                PlayerPrefs.SetFloat(
-                    "Checkpoint_Y",
-                    transform.position.y
-                );
-
+                PlayerPrefs.SetFloat("Checkpoint_X", transform.position.x);
+                PlayerPrefs.SetFloat("Checkpoint_Y", transform.position.y);
                 PlayerPrefs.Save();
-
-                Debug.Log(
-                    $"[Checkpoint] Posição salva: {transform.position}"
-                );
+                Debug.Log($"[Checkpoint] Posição salva: {transform.position}");
             }
         }
     }

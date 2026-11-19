@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
@@ -53,6 +52,9 @@ public class CameraShake : MonoBehaviour
         {
             originalOrthographicSize = cam.orthographicSize;
         }
+
+        // Inscreve no evento estático do RhythmManager para pulsar a cada beat.
+        RhythmManager.OnBeatStatic += () => Pulse();
     }
 
     /// <summary>
@@ -87,8 +89,8 @@ public class CameraShake : MonoBehaviour
         if (intensity < 0)
             intensity = pulseIntensity;
 
-        // Obtém o intervalo real entre os beats.
-        float beatInterval = RhythmManager.Instance.BeatInterval;
+        // Obtém o intervalo real entre os beats a partir do RhythmManager.
+        float beatInterval = (float)RhythmManager.Instance.BeatInterval;
 
         // Ajusta a duração conforme o BPM.
         float duration = Mathf.Clamp(
@@ -136,24 +138,24 @@ public class CameraShake : MonoBehaviour
     /// Tremor independente para dano e explosões.
     /// </summary>
     public void Shake(float duration = -1f, float magnitude = -1f)
-{
-    if (duration < 0)
-        duration = defaultShakeDuration;
+    {
+        if (duration < 0)
+            duration = defaultShakeDuration;
 
-    if (magnitude < 0)
-        magnitude = defaultShakeMagnitude;
+        if (magnitude < 0)
+            magnitude = defaultShakeMagnitude;
 
-    // Limita o tremor para evitar movimentos exagerados.
-    duration = Mathf.Clamp(duration, 0.01f, 0.08f);
-    magnitude = Mathf.Clamp(magnitude, 0f, 0.02f);
+        // Limita o tremor para evitar movimentos exagerados.
+        duration = Mathf.Clamp(duration, 0.01f, 0.08f);
+        magnitude = Mathf.Clamp(magnitude, 0f, 0.02f);
 
-    if (shakeCoroutine != null)
-        StopCoroutine(shakeCoroutine);
+        if (shakeCoroutine != null)
+            StopCoroutine(shakeCoroutine);
 
-    shakeCoroutine = StartCoroutine(
-        DoShake(duration, magnitude)
-    );
-}
+        shakeCoroutine = StartCoroutine(
+            DoShake(duration, magnitude)
+        );
+    }
 
     private IEnumerator DoShake(float duration, float magnitude)
     {
@@ -196,6 +198,8 @@ public class CameraShake : MonoBehaviour
 
     private void OnDestroy()
     {
+        RhythmManager.OnBeatStatic += () => Pulse();
+
         if (Instance == this)
             Instance = null;
     }

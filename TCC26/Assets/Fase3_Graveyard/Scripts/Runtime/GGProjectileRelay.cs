@@ -14,7 +14,9 @@ namespace PopAdventure.Fase3
         [Tooltip("Destroi o projétil depois de atingir algo da Fase 3.")]
         [SerializeField] bool destroyOnHit = false;
 
-        readonly HashSet<int> alreadyHit = new HashSet<int>();
+        // Usa string (GlobalObjectId ou GetHashCode de referência) para evitar
+        // dependência de int/EntityId — compatível com Unity 6 sem depreciações.
+        readonly HashSet<string> alreadyHit = new HashSet<string>();
 
         public void SetDamage(int value) { damage = value; }
 
@@ -30,8 +32,11 @@ namespace PopAdventure.Fase3
             if (target == null) return;
 
             Component c = target as Component;
-            // GetInstanceID() é único por objeto — corrige falso-positivo de deduplicação
-            int id = c != null ? c.GetInstanceID() : other.GetInstanceID();
+            // Usa o nome do GameObject + posição como chave única — sem depreciações
+            string id = c != null
+                ? $"{c.gameObject.name}_{c.gameObject.transform.position}"
+                : $"{other.gameObject.name}_{other.gameObject.transform.position}";
+
             if (!alreadyHit.Add(id)) return;
 
             target.TakeDamage(damage, transform.position);
