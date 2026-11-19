@@ -2716,6 +2716,13 @@ MonoBehaviour:
   groundTag: Ground
   bossPrefab: {fileID: 7389879856156611526, guid: 7c1daeed0bb17ad4bb2d06ffae0306e1, type: 3}
   bossPrefabScale: 1
+  minionBeeMax: 2
+  minionBeeDamage: 5
+  minionBeeDashSpeed: 6
+  minionBeeAttackEveryBars: 2
+  bossEasyMode: 1
+  bossSpeedMul: 0.6
+  bossStunDamageMul: 2
   beatPlatformStep: 2
   honeySpeedX: 3.5
   honeyMaxUp: 13
@@ -3901,8 +3908,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03505f4797cbf3a4d97a32184d18c4cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraShake
-  defaultShakeDuration: 0.1
+  defaultShakeDuration: 0.05
   defaultShakeMagnitude: 0.1
+  pulseIntensity: 0.05
+  pulseDurationPercent: 0.2
+  minPulseDuration: 0.04
+  maxPulseDuration: 0.18
 --- !u!114 &1845254045
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3917,7 +3928,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CameraFollow
   player: {fileID: 1456236143}
   smoothSpeed: 5
-  verticalOffset: 2
+  verticalOffset: 2.5
 --- !u!114 &1845254046
 MonoBehaviour:
   m_ObjectHideFlags: 0
