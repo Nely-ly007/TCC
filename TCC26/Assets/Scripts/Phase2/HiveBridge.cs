@@ -162,10 +162,21 @@ namespace PopAdventure.Hive
             WarnOnce("cura", "Nenhum método de cura encontrado no Player. Ajuste PlayerHealMethods em HiveBridge.cs.");
         }
 
+
         public static void AddVinyls(int amount)
         {
-            if (!TryInvoke(GetSingleton(GameManagerTypeName), VinylMethods, amount))
-                WarnOnce("vinil", "Nenhum método de vinil no GameManager. Ajuste VinylMethods em HiveBridge.cs.");
+            if (amount <= 0)
+                return;
+
+            if (GameManager.Instance == null)
+            {
+                Debug.LogError("[Hive] GameManager.Instance não encontrado! Não foi possível adicionar vinis.");
+                return;
+            }
+
+            GameManager.Instance.AddVinyls(amount);
+
+            Debug.Log($"[Hive] {amount} vinil(s) adicionado(s). Total: {GameManager.Instance.GetVinyls()}");
         }
 
         public static void AddExtraLife()
