@@ -46,6 +46,24 @@ namespace PopAdventure.Hive
         [Tooltip("Tamanho do prefab do boss. Ajuste até ele ficar com ~3 unidades de altura.")]
         public float bossPrefabScale = 1f;
 
+        [Header("Abelhas da Rainha (luta do boss)")]
+        [Tooltip("Máximo de abelhas vivas ao mesmo tempo durante a luta. A Rainha pede 2 (4 na fase 2); este limite corta o excesso. 1 = muito fácil, 2 = padrão, 4 = original.")]
+        [Range(1, 4)] public int minionBeeMax = 2;
+        [Tooltip("Dano de contato das abelhas da Rainha (a abelha comum de fase causa 15).")]
+        public int minionBeeDamage = 10;
+        [Tooltip("Velocidade do mergulho das abelhas da Rainha (original = 12). Menor = mais fácil de desviar.")]
+        public float minionBeeDashSpeed = 8f;
+        [Tooltip("De quantos em quantos compassos a abelha ataca. 1 = todo compasso (original), 2 = padrão, 3 = bem espaçado.")]
+        [Range(1, 4)] public int minionBeeAttackEveryBars = 2;
+
+        [Header("Rainha (ataques da luta)")]
+        [Tooltip("Liga os ajustes de facilidade da Rainha: menos tiros, mira do mergulho que trava, onda única, chuva mais leve. Desligado = ataques originais.")]
+        public bool bossEasyMode = true;
+        [Tooltip("Velocidade dos ataques da Rainha no modo fácil (projéteis, ondas, chuva, investida). 1 = original, 0.75 = padrão, 0.6 = bem lento.")]
+        [Range(0.4f, 1f)] public float bossSpeedMul = 0.75f;
+        [Tooltip("Dano que o Player causa quando a Rainha está atordoada no chão (original = 1.5). Maior = luta mais curta.")]
+        [Range(1f, 3f)] public float bossStunDamageMul = 2f;
+
         [Header("Balanceamento")]
         [Tooltip("Velocidade das plataformas de ritmo: batidas por caractere do pattern. 1 = rápido (difícil), 2 = meio tempo (padrão, mais fácil), 4 = bem lento.")]
         [Range(1, 4)] public int beatPlatformStep = 2;
@@ -91,6 +109,13 @@ namespace PopAdventure.Hive
             BossActive = false;
 
             HiveBeatPlatform.StepBeats = Mathf.Clamp(beatPlatformStep, 1, 4);
+            HiveQueenBoss.EasyMode = bossEasyMode;
+            HiveQueenBoss.SpeedMul = Mathf.Clamp(bossSpeedMul, 0.4f, 1f);
+            HiveQueenBoss.StunDamageMul = Mathf.Max(1f, bossStunDamageMul);
+            HiveWorkerBee.MinionMax = Mathf.Clamp(minionBeeMax, 1, 4);
+            HiveWorkerBee.MinionDamage = Mathf.Max(1, minionBeeDamage);
+            HiveWorkerBee.MinionDashSpeed = Mathf.Max(3f, minionBeeDashSpeed);
+            HiveWorkerBee.MinionAttackEveryBars = Mathf.Clamp(minionBeeAttackEveryBars, 1, 4);
             HiveHoneyPool.SpeedX = Mathf.Max(1f, honeySpeedX);
             HiveHoneyPool.MaxUp = Mathf.Max(3f, honeyMaxUp);
             HivePickup.VinylMagnet = Mathf.Max(0f, vinylMagnet);

@@ -6,12 +6,26 @@ namespace PopAdventure.Hive
     /// Abelha operária voadora (20 HP, 15 de dano). Ciclo de 4 batidas:
     /// batida 1 = telegrafa (pisca/treme), batida 3 = mergulha na direção em que o jogador estava,
     /// depois recua. Quando está longe, patrulha em vaivém sincronizado à música.
+    /// ABELHAS DA RAINHA (filhas do HiveQueenArena) são mais fáceis: no máximo MinionMax vivas, atacam a cada
+    /// MinionAttackEveryBars compassos, a mira trava na batida 2 (dá tempo de desviar), mergulho mais lento,
+    /// dano menor, alcance menor e 1,5 s de folga ao nascer. Valores no HiveLevelBootstrap ▸ Abelhas da Rainha.
     /// </summary>
     public class HiveWorkerBee : MonoBehaviour
     {
         private enum State { Patrol, Telegraph, Dash, Recover }
 
         private const float Aggro = 9f;
+
+        /// <summary>Máximo de abelhas da Rainha vivas ao mesmo tempo (a Rainha pede 2 e, na fase 2, até 4).</summary>
+        public static int MinionMax = 2;
+        /// <summary>Dano de contato das abelhas da Rainha (abelha comum de fase = 15).</summary>
+        public static int MinionDamage = 10;
+        /// <summary>Velocidade do mergulho das abelhas da Rainha (abelha comum = 12).</summary>
+        public static float MinionDashSpeed = 8f;
+        /// <summary>1 = ataca todo compasso; 2 = ataca de 2 em 2 compassos (padrão); 3 = de 3 em 3.</summary>
+        public static int MinionAttackEveryBars = 2;
+        private const float MinionAggro = 6.5f;
+        private const float MinionGrace = 1.5f;
 
         private HiveDamageable dmg;
         private Transform visual;
@@ -28,8 +42,30 @@ namespace PopAdventure.Hive
         private float jitterSeed;
         private State state = State.Patrol;
 
+        private bool isMinion;
+        private bool aimFrozen;
+        private int barCount;
+        private float graceUntil;
+        private float aggro = Aggro;
+        private float dashSpeed = 12f;
+
         public void Init(float patrolRange, float hp)
         {
+            // abelha chamada pela Rainha? (nasce como filha do HiveQueenArena)
+            isMinion = transform.parent != null && transform.parent.GetComponent<HiveQueenArena>() != null;
+            if (isMinion)
+            {
+                var alive = transform.parent.GetComponentsInChildren<HiveWorkerBee>();
+                if (alive.Length > Mathf.Max(1, MinionMax))
+                {
+                    Destroy(gameObject);   // já há abelhas demais na arena
+                    return;
+                }
+                aggro = MinionAggro;
+                dashSpeed = Mathf.Max(3f, MinionDashSpeed);
+                graceUntil = Time.time + MinionGrace;
+            }
+
             range = Mathf.Max(0f, patrolRange);
             anchor = transform.position;
             pos = anchor;
@@ -49,7 +85,7 @@ namespace PopAdventure.Hive
             dmg.Died += OnDied;
 
             var cd = gameObject.AddComponent<HiveContactDamage>();
-            cd.damage = 15;
+            cd.damage = isMinion ? Mathf.Max(1, MinionDamage) : 15;
             cd.knockback = 7f;
 
             var v = new GameObject("Visual");
@@ -84,7 +120,7 @@ namespace PopAdventure.Hive
             var p = HiveBridge.Player;
             if (p == null) return false;
             playerPos = p.transform.position;
-            return Vector2.Distance(pos, playerPos) < Aggro;
+            return Vector2.Distance(pos, playerPos) < aggro;
         }
 
         private void HandleBeat(int beat, int inBar)
@@ -93,14 +129,22 @@ namespace PopAdventure.Hive
 
             if (inBar == 0)
             {
+                barCount++;
                 if (state == State.Recover || state == State.Dash) state = State.Patrol;
                 Vector2 pp;
-                if (state == State.Patrol && PlayerNear(out pp))
+                bool mayAttack = !isMinion ||
+                                 (Time.time >= graceUntil && barCount % Mathf.Max(1, MinionAttackEveryBars) == 0);
+                if (mayAttack && state == State.Patrol && PlayerNear(out pp))
                 {
                     state = State.Telegraph;
+                    aimFrozen = false;
                     lockPoint = pp;
                     HiveSfx.Play(HiveSfxId.Warn, 0.25f, 1.3f);
                 }
+            }
+            else if (inBar == 1 && state == State.Telegraph && isMinion)
+            {
+                aimFrozen = true;   // a mira para de seguir você: 1 batida inteira para sair da linha
             }
             else if (inBar == 2 && state == State.Telegraph)
             {
@@ -135,11 +179,11 @@ namespace PopAdventure.Hive
                     if ((pos - patrol).sqrMagnitude < 0.04f) state = State.Patrol;
                     break;
                 case State.Telegraph:
-                    if (p != null) lockPoint = (Vector2)p.transform.position + Vector2.up * 0.3f;
+                    if (p != null && !aimFrozen) lockPoint = (Vector2)p.transform.position + Vector2.up * 0.3f;
                     break;
                 case State.Dash:
                 {
-                    Vector2 step = dashDir * 12f * dt;
+                    Vector2 step = dashDir * dashSpeed * dt;
                     if (!HivePhysics.CircleBlocked(pos, 0.3f, dashDir, step.magnitude + 0.05f)) pos += step;
                     else dashLeft = 0f;
                     dashLeft -= dt;

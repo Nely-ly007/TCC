@@ -15,6 +15,12 @@ namespace PopAdventure.Fase3
         [SerializeField] GGGate[] gates;
         [SerializeField] float startDelay = 0.8f;
 
+        [Header("Cutscenes (opcional)")]
+        [Tooltip("Toca depois dos portões fecharem e ANTES da luta começar. A luta só inicia quando ela termina.")]
+        [SerializeField] GGCutscene introCutscene;
+        [Tooltip("Toca quando o boss é derrotado (o fragmento aparece ~1,8 s depois da morte).")]
+        [SerializeField] GGCutscene defeatCutscene;
+
         BoxCollider2D area;
         bool started;
         bool finished;
@@ -57,6 +63,11 @@ namespace PopAdventure.Fase3
             GGCameraFollow.LockBounds(ArenaRect());
             if (GGBeatClock.Instance != null) GGBeatClock.Instance.SwitchToBossMusic();
             yield return new WaitForSeconds(startDelay);
+            if (introCutscene != null)
+            {
+                introCutscene.Play();
+                while (introCutscene.IsPlaying) yield return null;
+            }
             boss.BeginFight();
         }
 
@@ -72,6 +83,7 @@ namespace PopAdventure.Fase3
         {
             if (!started || finished) return;
             StopAllCoroutines();
+            if (introCutscene != null) introCutscene.Stop();
             started = false;
             SetGates(false);
             GGCameraFollow.UnlockBounds();
@@ -85,6 +97,7 @@ namespace PopAdventure.Fase3
             SetGates(false);
             GGCameraFollow.UnlockBounds();
             if (GGBeatClock.Instance != null) GGBeatClock.Instance.FadeOutMusic(5f);
+            if (defeatCutscene != null) defeatCutscene.Play();
         }
 
         void OnDrawGizmosSelected()

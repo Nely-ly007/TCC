@@ -5,6 +5,11 @@ namespace PopAdventure.Hive
 {
     /// <summary>
     /// Rainha Abelha — boss da Fase 2. Todos os ataques saem das batidas/compassos (4/4, 108 BPM).
+    ///
+    /// MODO FÁCIL (EasyMode, padrão ligado; HiveLevelBootstrap ▸ Boss): projéteis, ondas, chuva e investida
+    /// ×SpeedMul de velocidade; leque dispara 1x por compasso (fase 2: 3 ferrões, sem tiro extra); a mira do
+    /// mergulho TRAVA na batida 2 (dá tempo de sair do lugar); onda única no chão (sem 2ª onda); chuva de 1 gota
+    /// por batida; dano ×StunDamageMul quando ela está atordoada no chão. EasyMode desligado = comportamento original.
     /// </summary>
     public class HiveQueenBoss : MonoBehaviour
     {
@@ -15,6 +20,16 @@ namespace PopAdventure.Hive
         private static readonly Pattern[] Cycle2 = { Pattern.Volley, Pattern.SlamPrep, Pattern.Grounded, Pattern.Rain, Pattern.Dash };
 
         private const float BodyRadius = 1.45f;
+
+        /// <summary>Liga os ajustes de facilidade da luta. Definido pelo HiveLevelBootstrap.</summary>
+        public static bool EasyMode = true;
+        /// <summary>Multiplicador de velocidade dos ataques no modo fácil (1 = original).</summary>
+        public static float SpeedMul = 0.75f;
+        /// <summary>Multiplicador de dano quando a Rainha está atordoada no chão (original = 1.5).</summary>
+        public static float StunDamageMul = 2f;
+
+        private static float Sp(float v) { return EasyMode ? v * Mathf.Clamp(SpeedMul, 0.4f, 1f) : v; }
+        private bool alignFrozen;
 
         private HiveQueenArena arena;
         private HiveDamageable dmg;
@@ -154,13 +169,23 @@ namespace PopAdventure.Hive
             {
                 case Pattern.Volley:
                     if (inBar == 0) SetMode(Mode.Hover);
-                    if (inBar == 1 || inBar == 3)
-                        FireFan(phase2 ? 5 : 3, phase2 ? 14f : 18f, phase2 ? 10f : 8.5f);
-                    if (phase2 && inBar == 2) FireFan(1, 0f, 12f);
+                    if (EasyMode)
+                    {
+                        // fase 1: 1 leque por compasso; fase 2: 3 ferrões nas batidas 2 e 4, sem tiro extra
+                        if (inBar == 1 || (phase2 && inBar == 3))
+                            FireFan(3, phase2 ? 16f : 18f, phase2 ? 10f : 8.5f);
+                    }
+                    else
+                    {
+                        if (inBar == 1 || inBar == 3)
+                            FireFan(phase2 ? 5 : 3, phase2 ? 14f : 18f, phase2 ? 10f : 8.5f);
+                        if (phase2 && inBar == 2) FireFan(1, 0f, 12f);
+                    }
                     break;
 
                 case Pattern.SlamPrep:
-                    if (inBar == 0) { SetMode(Mode.Align); warn = false; }
+                    if (inBar == 0) { alignFrozen = false; SetMode(Mode.Align); warn = false; }
+                    else if (inBar == 1 && EasyMode) alignFrozen = true;   // para de te seguir: sai do lugar!
                     else if (inBar == 2) { warn = true; HiveSfx.Play(HiveSfxId.Warn, 0.5f, 0.8f); }
                     else if (inBar == 3) StartDive();
                     break;
@@ -195,6 +220,7 @@ namespace PopAdventure.Hive
 
         private void FireFan(int count, float spreadDeg, float speed)
         {
+            speed = Sp(speed);
             Vector2 origin = pos + new Vector2(flip * 1.2f, -0.2f);
             Vector2 target = PlayerPos(pos + Vector2.down) + Vector2.up * 0.4f;
             float baseAng = Mathf.Atan2(target.y - origin.y, target.x - origin.x) * Mathf.Rad2Deg;
@@ -223,7 +249,7 @@ namespace PopAdventure.Hive
             }
             pos.y = restY;
             SetMode(Mode.Grounded);
-            dmg.damageMultiplier = 1.5f;
+            dmg.damageMultiplier = EasyMode ? Mathf.Max(1f, StunDamageMul) : 1.5f;
             warn = false;
 
             Vector2 foot = new Vector2(pos.x, floorY);
@@ -232,10 +258,10 @@ namespace PopAdventure.Hive
             HiveFx.Ring(foot, HivePalette.Pink, 4.5f, 0.5f);
             HiveFx.Burst(foot, HivePalette.Gold, 18, 6f, 0.6f, 0.22f, 8f);
 
-            float speed = 6.5f;
+            float speed = Sp(6.5f);
             HiveShockwave.Create(foot, 1f, speed, minX - 1f, maxX + 1f, 30);
             HiveShockwave.Create(foot, -1f, speed, minX - 1f, maxX + 1f, 30);
-            if (phase2) StartCoroutine(SecondWave(foot));
+            if (phase2 && !EasyMode) StartCoroutine(SecondWave(foot));
         }
 
         private IEnumerator SecondWave(Vector2 foot)
@@ -264,8 +290,8 @@ namespace PopAdventure.Hive
 
         private void RainDrops(int inBar)
         {
-            int n = phase2 ? 2 : 1;
-            float speed = phase2 ? 9.5f : 8f;
+            int n = (phase2 && !EasyMode) ? 2 : 1;
+            float speed = Sp(phase2 ? 9.5f : 8f);
             for (int i = 0; i < n; i++)
             {
                 float x = Random.Range(minX + 1f, maxX - 1f);
@@ -289,7 +315,7 @@ namespace PopAdventure.Hive
         {
             warn = false;
             SetMode(Mode.Dash);
-            dashSpeed = (maxX - minX) / ((float)HiveBeatDriver.BeatInterval * 1.7f);
+            dashSpeed = Sp((maxX - minX) / ((float)HiveBeatDriver.BeatInterval * 1.7f));
             HiveBridge.ShakeCamera(0.2f, 0.25f);
             HiveSfx.Play(HiveSfxId.BossRoar, 0.7f, 1.3f);
         }
@@ -409,7 +435,7 @@ namespace PopAdventure.Hive
                     }
                 case Mode.Align:
                     {
-                        float tx = Mathf.Clamp(pp.x, minX, maxX);
+                        float tx = alignFrozen ? pos.x : Mathf.Clamp(pp.x, minX, maxX);
                         pos = Vector2.SmoothDamp(pos, new Vector2(tx, hoverY + 0.6f), ref vel, 0.16f);
                         break;
                     }
