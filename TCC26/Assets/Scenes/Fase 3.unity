@@ -22714,11 +22714,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4082211136213829784, guid: 7b076913827280544ab532805697ab36, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 95.5
+      value: 98.83
       objectReference: {fileID: 0}
     - target: {fileID: 4082211136213829784, guid: 7b076913827280544ab532805697ab36, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.3
+      value: 1.37
       objectReference: {fileID: 0}
     - target: {fileID: 4082211136213829784, guid: 7b076913827280544ab532805697ab36, type: 3}
       propertyPath: m_LocalPosition.z
@@ -24823,6 +24823,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: Boss_Graveyard
       objectReference: {fileID: 0}
+    - target: {fileID: 4547390280997363473, guid: 28eb864035f963d4e85ab456ba064e30, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 4547390280997363473, guid: 28eb864035f963d4e85ab456ba064e30, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2.33
+      objectReference: {fileID: 0}
     - target: {fileID: 6592869432644412172, guid: 28eb864035f963d4e85ab456ba064e30, type: 3}
       propertyPath: m_LocalPosition.x
       value: 243
@@ -24864,6 +24872,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8554897716500342810, guid: 28eb864035f963d4e85ab456ba064e30, type: 3}
+      propertyPath: visual
+      value: 
+      objectReference: {fileID: 8083585561799845835, guid: 6247c40e99b10884eb30bff5b12a606d, type: 3}
+    - target: {fileID: 8554897716500342810, guid: 28eb864035f963d4e85ab456ba064e30, type: 3}
       propertyPath: leftLimit
       value: 
       objectReference: {fileID: 1899346927}
@@ -24872,7 +24884,8 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1899346926}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 7983693008901816009, guid: 28eb864035f963d4e85ab456ba064e30, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 28eb864035f963d4e85ab456ba064e30, type: 3}
@@ -27179,11 +27192,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4082211136213829784, guid: 7b076913827280544ab532805697ab36, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 92.5
+      value: 85.74
       objectReference: {fileID: 0}
     - target: {fileID: 4082211136213829784, guid: 7b076913827280544ab532805697ab36, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.4
+      value: 1.33
       objectReference: {fileID: 0}
     - target: {fileID: 4082211136213829784, guid: 7b076913827280544ab532805697ab36, type: 3}
       propertyPath: m_LocalPosition.z
@@ -35361,11 +35374,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4082211136213829784, guid: 7b076913827280544ab532805697ab36, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 89.5
+      value: 89.76
       objectReference: {fileID: 0}
     - target: {fileID: 4082211136213829784, guid: 7b076913827280544ab532805697ab36, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.3
+      value: 1.41
       objectReference: {fileID: 0}
     - target: {fileID: 4082211136213829784, guid: 7b076913827280544ab532805697ab36, type: 3}
       propertyPath: m_LocalPosition.z
