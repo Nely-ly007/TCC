@@ -52,7 +52,7 @@ namespace PopAdventure.Fase3.EditorTools
 
             EditorGUILayout.LabelField("POP ADVENTURE — Fase 3: Graveyard Groove", EditorStyles.boldLabel);
             EditorGUILayout.HelpBox(
-                "Passo 1 cria Tiles, as duas Tile Palettes, os prefabs e o Animator do boss.\n"
+                "Passo 1 cria Tiles, as duas Tile Palettes e os prefabs (incluindo o boss com animação automática).\n"
                 + "Passo 2 monta a cena (Grid + layout jogável + boss + sistemas).", MessageType.Info);
 
             EditorGUILayout.Space();
@@ -82,6 +82,23 @@ namespace PopAdventure.Fase3.EditorTools
 
             if (GUILayout.Button("Tudo (1 + 2)", GUILayout.Height(28f)))
                 Run(delegate { RunStep1(); RunStep2(); });
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Boss", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "O boss é montado com as suas peças (Art/BossRig) e animado por código (GGBossRig), sem Animator. "
+                + "Use este botão se o prefab do boss ainda tem o visual antigo (placeholder + Animator) ou se quiser refazer o rig. "
+                + "Teste rápido: arraste o prefab para uma cena vazia, marque 'Demo Loop' no GGBossRig e dê Play.", MessageType.None);
+            if (GUILayout.Button("Recriar Boss com Rig Procedural"))
+                GGBossRigBuilder.MenuRebuild();
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Plataformas rítmicas", EditorStyles.boldLabel);
+            EditorGUILayout.HelpBox(
+                "Se as plataformas que aparecem/somem estão rápidas demais: este botão converte as da cena aberta (e os prefabs) "
+                + "para Period Beats 8 / On Beats 6 (3,2 s presentes), sem reconstruir a fase. Só mexe nas que ainda estão em Period 4.", MessageType.None);
+            if (GUILayout.Button("Deixar plataformas rítmicas mais lentas"))
+                GGRhythmTuner.Run();
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Opcional", EditorStyles.boldLabel);

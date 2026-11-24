@@ -1,3 +1,4 @@
+
 using UnityEngine;
 
 namespace PopAdventure.World
@@ -5,21 +6,22 @@ namespace PopAdventure.World
     public class Checkpoint : MonoBehaviour
     {
         [Header("Sprites")]
-        [Tooltip("Sprite quando o Checkpoint ainda NÃO foi ativado (Preto/Desativado)")]
+        [Tooltip("Sprite quando o Checkpoint ainda NÃO foi ativado.")]
         [SerializeField] private Sprite spriteInactive;
 
-        [Tooltip("Sprite quando o Checkpoint FOI ativado (Original/Colorido)")]
+        [Tooltip("Sprite quando o Checkpoint FOI ativado.")]
         [SerializeField] private Sprite spriteActive;
 
         [Header("Efeitos")]
         [SerializeField] private ParticleSystem activateEffect;
         [SerializeField] private AudioClip activateSFX;
 
-        [Header("Cores do Burst (Fase 1 — Disco Fever)")]
-        [SerializeField] private Color burstColor = new Color(1.00f, 0.22f, 0.60f); // rosa disco
-        [SerializeField] private Color ringColor = new Color(1.00f, 0.85f, 0.20f); // dourado
+        [Header("Cores")]
+        [SerializeField] private Color burstColor = new Color(1.00f, 0.22f, 0.60f);
+        [SerializeField] private Color ringColor = new Color(1.00f, 0.85f, 0.20f);
 
         private bool isActivated = false;
+
         private SpriteRenderer sr;
         private AudioSource audioSource;
 
@@ -43,6 +45,7 @@ namespace PopAdventure.World
             if (!other.CompareTag("Player")) return;
 
             PlayerController player = other.GetComponent<PlayerController>();
+
             if (player == null)
                 player = other.GetComponentInParent<PlayerController>();
 
@@ -62,16 +65,11 @@ namespace PopAdventure.World
             {
                 if (spriteActive != null)
                     sr.sprite = spriteActive;
+
                 sr.color = Color.white;
             }
 
-            // ── Efeitos visuais ──────────────────────────────────
-            Vector2 top = (Vector2)transform.position + Vector2.up * 1.1f;
-            GameFx.Burst(top, burstColor, 16, 5f, 0.7f, 0.2f, 2f);
-            GameFx.Ring(top, ringColor, 2.2f, 0.5f);
-            GameOverlay.Toast("CHECKPOINT", burstColor, 1.4f);
-
-            // ParticleSystem legado (mantido caso esteja configurado no prefab)
+            // Partículas
             if (activateEffect != null)
                 activateEffect.Play();
 
@@ -79,10 +77,11 @@ namespace PopAdventure.World
             if (activateSFX != null && audioSource != null)
                 audioSource.PlayOneShot(activateSFX);
 
-            // Salva progresso
+            // Salvamento
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.SaveGame();
+
                 Debug.Log($"[Checkpoint] Ativado! Respawn definido em: {transform.position}");
             }
             else
@@ -90,6 +89,7 @@ namespace PopAdventure.World
                 PlayerPrefs.SetFloat("Checkpoint_X", transform.position.x);
                 PlayerPrefs.SetFloat("Checkpoint_Y", transform.position.y);
                 PlayerPrefs.Save();
+
                 Debug.Log($"[Checkpoint] Posição salva: {transform.position}");
             }
         }

@@ -23,12 +23,13 @@ Música: **114 BPM** (1 batida = 0,526 s). Tudo na fase (plataformas, espinhos, 
 
 Botões, nesta ordem:
 
-1. **Configurar sprites + Tiles + Paletas + Prefabs** — importa os sprites (PPU/filtro/pivô), cria os Tiles, as duas Tile Palettes, todos os prefabs e o Animator do boss.
+1. **Configurar sprites + Tiles + Paletas + Prefabs** — importa os sprites (PPU/filtro/pivô), cria os Tiles, as duas Tile Palettes e todos os prefabs (o boss já sai com o rig animado por código).
 2. **Construir cena da Fase 3** — cria `Assets/Scenes/Fase3_GraveyardGroove.unity` e adiciona ao Build Settings. Se a cena já existir, pergunta antes de substituir.
 3. **Tudo (1 + 2)** — os dois.
+3b. **Recriar Boss com Rig Procedural** (também em `Pop Adventure > Fase 3`) — troca o visual do prefab do boss pelas suas peças com animação automática. Use se o prefab do boss já existia de antes (com placeholder + Animator).
 4. **Preparar Player / Projétil** (opcional) — adiciona `GGPlayerHealth` + tag `Player` ao seu Player e `GGProjectileRelay` ao projétil (pede confirmação, modifica os seus prefabs).
 
-> Rodar o passo 1 de novo regenera os prefabs (apaga ajustes feitos neles). **Exceções preservadas:** `Boss_Graveyard` (prefab do boss) e `BossAnimator.controller` com seus clips — nunca são recriados se já existirem.
+> Rodar o passo 1 de novo regenera os prefabs (apaga ajustes feitos neles). **Exceção preservada:** `Boss_Graveyard` (prefab do boss) — nunca é recriado se já existir (só o botão **Recriar Boss com Rig Procedural** o atualiza, e mesmo assim no mesmo arquivo: a instância na cena e os campos do `GGBoss` ficam).
 
 ## 3. Ligar ao seu Player (5 minutos)
 
@@ -90,47 +91,84 @@ Convenção dos prefabs: a raiz fica no centro de uma célula e a base do sprite
 
 Ajustes por objeto (Inspector, depois de pintar):
 - `SpikeTrap_Rhythm`: `Period Beats`, `Active Beats`, `Offset Beats` (defasagem em batidas).
-- `Platform_Glowing_Blink` / `_Rise`: `Period Beats`, `On Beats`, `Offset Beats`. Em cadeia, use offsets 0, 1, 2, 3.
+- `Platform_Glowing_Blink` / `_Rise` (`GGRhythmPlatform`): `Period Beats` 8, `On Beats` 6 (presente 3,2 s, ausente 1 s; a última batida presente é o AVISO — pisca devagar e continua sólida — e a última ausente mostra um "fantasma"). `Offset Beats` em cadeia: Blink 0, 2, 4, 6 — Rise 0, 3. `Fade Seconds` (Blink) e `Rise Seconds` (Rise) controlam a suavidade; maior = mais lento.
+  - **Plataformas rápidas demais numa cena que você já construiu?** Menu **Pop Adventure > Fase 3 > Deixar plataformas rítmicas mais lentas** (ou o botão na janela) com a cena aberta: converte tudo que ainda está em Period 4 para o ciclo acima (Blink: offsets ×2; Rise: ×1,5) e os prefabs `Platform_Glowing_*`. Pode rodar de novo sem efeito. Depois salve a cena. À mão: selecione cada plataforma em `RhythmPlatforms` e ajuste os três campos.
 - `Platform_Hanging_Rail`, `SpikePlatform_Moving`, `Gear_Rail`: `GGRailMover` → `Travel` (x, y), `Beats Per Cycle`.
 - `SpikedBall_Swing_*`: `GGPendulum` → `Max Angle`, `Period Beats`. A raiz é o pivô.
 - `ZombieHand`: `Period Beats`, `Offset Beats`, `Proximity Only`.
 - Inimigos: `Enemy_Crow` (`Hover Mode` = paira), `Enemy_Wolf` (`Patrol Range`), `Enemy_Ghost`. Vida/dano: corvo 20/15, lobo 40/30, fantasma 10/15.
 - Puzzle: `Resonance_Lantern`/`Resonance_Tombstone` + `Gate_Iron` (marque `Start Closed`) + `Door_Resonance` (arraste os alvos em `Targets` e o portão em `Gate`).
 
-## 6. O boss (você coloca o sprite e anima no Animator)
+## 6. O boss (animação AUTOMÁTICA por código)
 
-Prefab: `Generated/Prefabs/Boss/Boss_Graveyard` (já está na cena, em `BossFight`).
+Prefab: `Generated/Prefabs/Boss/Boss_Graveyard` (já está na cena, em `BossFight`). Você NÃO anima nada: o `GGBossRig` move as 12 peças do zumbi (`Art/BossRig/gboss_*.png`) no ritmo da música (114 BPM).
+
+**Passo a passo (uma vez):**
+1. Copie a pasta `Fase3_Graveyard` inteira para `Assets` (inclui `Art/BossRig`).
+2. Menu **Pop Adventure > Fase 3 > Recriar Boss com Rig Procedural** (ou o botão "Boss" na janela do construtor). Ele configura as 12 peças (PPU 530, pivô na articulação de cada uma) e monta/atualiza o prefab `Boss_Graveyard`.
+3. **Teste rápido:** arraste `Boss_Graveyard` para uma cena vazia, selecione `Visual`, marque **Demo Loop** no `GGBossRig` e dê Play. Ele passa por tudo (dormindo, intro, dança, andar, deslize, mãos, giro, orbs, invocar, mudança de fase, dano, morte); o nome da etapa aparece no canto da tela. Desmarque depois.
 
 ```
 Boss_Graveyard   GGBoss, Rigidbody2D (Kinematic), BoxCollider2D (hurtbox + dano de contato)   ← raiz = PÉS
-  Visual         Animator (BossAnimator)  ← o código vira o scale.x aqui. NÃO anime o scale.x do Visual.
-    Body         SpriteRenderer           ← coloque o SEU sprite aqui e anime este objeto
-  Muzzle         de onde saem os orbs
+  Visual         GGBossRig + SortingGroup (Order 2)  ← o código vira o scale.x aqui. NÃO mexa no scale.x do Visual.
+    Rig          pés: recebe giro/pulo/queda/escala (giro de lado, morte)
+      Hips       quadril (translada: agachar/dançar)
+        Torso → Head, ArmFront_Upper → ArmFront_Lower, ArmBack_Upper → ArmBack_Lower
+        LegFront_Thigh → LegFront_Calf → LegFront_Foot      (IK de 2 ossos: pés planos e plantados)
+        LegBack_Thigh  → LegBack_Calf  → LegBack_Foot
+  Muzzle         de onde saem os orbs (o X é "para frente": espelha sozinho conforme o lado)
   HealthBar      barra de vida em espaço de mundo
 ```
 
-Passo a passo:
-1. Selecione `Body` e troque o **Sprite** do SpriteRenderer pelo seu. Ajuste o **Local Position Y** do `Body` para os pés ficarem na altura do chão (y = 0 da raiz).
-2. Ajuste o `BoxCollider2D` da raiz ao tamanho do corpo. Se o sprite original olha para a esquerda, desmarque **Sprite Faces Right** no `GGBoss`.
-3. Selecione `Visual`, abra `Window > Animation > Animation`, escolha o clip no menu (`Generated/Animation/BossClips/Boss_*.anim` — estão vazios) e grave os keyframes (Sprite do `Body` ou ossos/partes).
-4. O Controller `Generated/Animation/BossAnimator.controller` já tem os parâmetros e as transições. Os estados de ataque voltam para `Idle` ao terminar o clip.
+Cada junta é um GameObject com o SpriteRenderer da peça e o pivô do sprite exatamente na articulação (não mexa nas posições locais das juntas: o IK lê o esqueleto de repouso daqui).
 
-Parâmetros do Animator (se algum não existir, o código ignora em silêncio; os nomes podem ser trocados no `GGBoss`):
+**Animações (disparadas pelo `GGBoss`, todas travadas na batida):**
 
-| Parâmetro | Quando dispara | Duração a animar (114 BPM) |
+| Animação | Quando | O que faz |
 |---|---|---|
-| `IsMoving` (Bool) | andando / deslizando | loop (`Walk`) |
-| `Intro` (Trigger) | início da luta | 8 batidas ≈ 4,2 s |
-| `AttackDash` (Trigger) | aviso do deslize (moonwalk) | 2 batidas ≈ 1,05 s (fase 3: 1) e depois desliza com `IsMoving` |
-| `AttackHands` (Trigger) | invoca a onda de mãos de zumbi | 1 batida ≈ 0,5 s |
-| `AttackSpin` (Trigger) | giro + ondas de choque no chão | 1 batida ≈ 0,5 s |
-| `AttackOrbs` (Trigger) | orbs mirados (fase 2+) | 1 batida ≈ 0,5 s |
-| `AttackSummon` (Trigger) | invoca 2 fantasmas (fase 2+) | 2 batidas ≈ 1 s |
-| `Hurt` (Trigger) | levou dano (no máx. 1 a cada 0,8 s) | curto |
-| `PhaseChange` (Trigger) | HP 66 % e 33 % | 4 batidas ≈ 2,1 s |
-| `Die` (Trigger) | derrotado | sem retorno (o fragmento aparece 1,8 s depois) |
+| Dormant | antes da luta | largado, cabeça baixa, braços pendurados, respirando |
+| Idle | descanso entre ataques | dança no ritmo: joelhos afundam a cada batida, cabeça balança, garras ondulam (mais intensa a cada fase) |
+| Andar | automático | medido pela velocidade real do boss (anda para frente ou de costas); pés ao ritmo da passada |
+| Intro | início da luta, 8 batidas | espasmos, acorda, levanta e ruge |
+| Dash | deslize | 2 batidas agachado tremendo (aviso) → moonwalk deslizando → recuperação. Fase 3: vai, vira e volta |
+| Hands | mãos de zumbi | levanta os braços e "rege": um braço pisa a cada batida junto das mãos no chão |
+| Spin | giro | agacha, gira de lado com pulinho e **pisa numa batida: a onda de choque sai nesse instante** (1 / 2 / 3 giros nas fases 1 / 2 / 3) |
+| Orbs | orbs (fase 2+) | empurra as mãos para frente a cada batida; cada orb sai nesse empurrão |
+| Summon | fantasmas (fase 2+) | braços para o alto; pisão em 2 batidas e os fantasmas aparecem |
+| PhaseChange | HP 66 % e 33 %, 4 batidas | agacha e ruge tremendo |
+| Hurt | levou dano | recuo sobreposto (tronco, cabeça, braços), no máx. 1 a cada 0,2 s |
+| Die | derrotado | levanta os braços, cai para trás e fica largado no chão (o fragmento aparece 1,8 s depois) |
+
+**Ajustes finos (sem mexer no resto):**
+- Intensidade, amplitudes e ângulos de cada pose: `Scripts/Runtime/GGBossMotion.cs` (funções `Idle`, `Walk`, `Roar`, `Dash`, `Hands`, `Spin`, `Orbs`, `Summon`, `PhaseChange`, `Die`, `HurtDelta`). São só números em graus/unidades; ângulo positivo = "para frente/para cima".
+- Velocidade dos passos: `GGBossRig > Walk Stride` (distância por ciclo; menor = pés mais rápidos). `Walk Threshold` = velocidade mínima para andar. `Crossfade Seconds` = suavização entre animações.
+- Duração dos giros / dos avisos: `GGBoss.cs` (`SpinAttack`: 4 batidas na fase 1 e 3 nas outras; `DashAttack`: aviso 2 / 1 batida).
+- Ordem de desenho do boss (se o Player ficar atrás dele): `Visual > SortingGroup > Order in Layer`.
+- Flash de dano e Hurt funcionam sozinhos. O `GGBoss` descobre sozinho para onde o desenho olha (o zumbi enviado olha para a **esquerda**); não precisa mexer em `Sprite Faces Right`.
+- Quer animar à mão em vez do rig? Deixe o campo **Rig** do `GGBoss` vazio e use um Animator no `Visual` com os parâmetros `IsMoving`, `Intro`, `AttackDash`, `AttackHands`, `AttackSpin`, `AttackOrbs`, `AttackSummon`, `Hurt`, `PhaseChange`, `Die` (os nomes podem ser trocados no `GGBoss`; se um não existir, é ignorado).
 
 Luta: HP 250, 3 fases (66 % / 33 %). Ataques: Deslize (30 de dano), Mãos de zumbi (15, sempre sobra um vão), Giro com ondas no chão (pule), Orbs (fase 2+, a nota destrói), Fantasmas (fase 2+). Boss largando até 2 notas de cura por luta. Se o Player morrer na luta, tudo reinicia no checkpoint.
+
+## 6b. Cutscene (intro do boss, derrota, fim de fase)
+
+Script: `GGCutscene` (em `Scripts/Runtime`). É uma cutscene **por passos**: cada passo espera um tempo e dispara um UnityEvent.
+
+Criar:
+1. `GameObject > Create Empty`, nome `Cutscene_BossIntro`. `Add Component > GGCutscene`.
+2. `Time Unit`: `Beats` (sincroniza com a música, 114 BPM) ou `Seconds`.
+3. `Disable During Cutscene`: arraste o **PlayerController** da instância do Player na cena (ele é desligado durante a cutscene e religado no fim). Deixe `Stop Player Motion` marcado.
+4. Em `Steps`, adicione um item por momento. `Wait` = espera ANTES do passo. No evento do passo, clique em `+`, arraste um objeto e escolha o método. Exemplos:
+   - Passo 1 (`Wait` 0): `Cutscene_BossIntro > GGCutscene.ShakeCamera` com `0.4`. (O boss fica largado/dormindo durante a cutscene e acorda sozinho — animação Intro de 8 batidas — quando a luta começa.)
+   - Passo 2 (`Wait` 2): seu painel de diálogo (UI Toolkit) ou `GameObject.SetActive`.
+   - Passo 3 (`Wait` 3): esconder o diálogo.
+   Também funciona `AudioSource.Play`, `PlayableDirector.Play` (Timeline) e qualquer método público dos seus scripts.
+5. Para pular: ligue um botão ao método `GGCutscene.Skip()` (dispara os passos restantes na hora e termina).
+
+Ligar:
+- **Intro do boss:** selecione `BossFight > BossArena` e arraste `Cutscene_BossIntro` em `GGBossArena > Intro Cutscene`. A ordem fica: portões fecham, câmera trava, a cutscene toca e só quando termina a luta começa. Se o Player morrer durante ela, é interrompida e toca de novo na próxima tentativa.
+- **Derrota do boss:** crie outra (`Cutscene_BossDefeated`) e arraste em `Defeated Cutscene`. O fragmento do Disco Dourado aparece 1,8 s depois da morte; use `Wait` 2 ou mais para a cutscene entrar depois dele.
+- **Qualquer outro momento:** em um UnityEvent, por exemplo `GGLevelManager.onFragmentCollected`, arraste o objeto e escolha `GGCutscene.Play`. Ao terminar, `onFinished` pode chamar o seu SceneController.
+- **Ao carregar a cena:** marque `Play On Start`.
 
 ## 7. Se algo não sair como esperado
 
@@ -146,7 +184,8 @@ Luta: HP 250, 3 fases (66 % / 33 %). Ataques: Deslize (30 de dano), Mãos de zum
 ```
 Fase3_Graveyard/
   Art/         sprites originais já limpos (tiles, props, hazards, inimigos, coletáveis, fundo)
-  Scripts/Runtime/   código da fase (prefixo GG)
+  Art/BossRig/ as 12 peças do zumbi (o construtor configura pivô e PPU delas)
+  Scripts/Runtime/   código da fase (prefixo GG). Boss: GGBoss (lógica), GGBossRig (animação automática), GGBossMotion (poses — os números para ajustar), GGBossPose/GGBossSolver (matemática do rig)
   Scripts/Editor/    construtor (menu Pop Adventure > Fase 3)
-  Generated/   criado pelo construtor: Tiles, Palettes, Prefabs, Animation
+  Generated/   criado pelo construtor: Tiles, Palettes, Prefabs
 ```

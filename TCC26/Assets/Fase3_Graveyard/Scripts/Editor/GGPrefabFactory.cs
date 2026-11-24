@@ -18,7 +18,7 @@ namespace PopAdventure.Fase3.EditorTools
         const string DirPickups = GGPaths.Prefabs + "/Pickups";
         const string DirInteract = GGPaths.Prefabs + "/Interactables";
         const string DirEnemies = GGPaths.Prefabs + "/Enemies";
-        const string DirBoss = GGPaths.Prefabs + "/Boss";
+        public const string DirBoss = GGPaths.Prefabs + "/Boss";
         const string DirFx = GGPaths.Prefabs + "/FX";
 
         public const string BossPrefabName = "Boss_Graveyard";
@@ -174,7 +174,7 @@ namespace PopAdventure.Fase3.EditorTools
             OneWay(root, col);
             GGEditorUtil.AddKinematic(root);
             GGRhythmPlatform rp = root.AddComponent<GGRhythmPlatform>();
-            GGEditorUtil.SetMany(rp, "mode", rise ? 1 : 0, "periodBeats", 4, "onBeats", rise ? 2 : 3,
+            GGEditorUtil.SetMany(rp, "mode", rise ? 1 : 0, "periodBeats", 8, "onBeats", 6,
                 "offsetBeats", 0f, "hiddenDrop", 2.5f, "solid", col);
             if (rise) root.AddComponent<GGRiderTracker>();
             GGEditorUtil.SavePrefab(root, DirPlatforms, name);
@@ -442,52 +442,25 @@ namespace PopAdventure.Fase3.EditorTools
         }
 
         // ================================================================== boss
+        /// <summary>
+        /// Boss: o visual é o RIG PROCEDURAL (peças do zumbi + GGBossRig), animado por código — sem Animator.
+        /// Se o prefab já existe ele é MANTIDO (para não sobrescrever o que você ajustou). Para trocar um boss antigo
+        /// (com placeholder/Animator) pelo rig, use o menu: Pop Adventure > Fase 3 > Recriar Boss com Rig Procedural.
+        /// </summary>
         static void CreateBoss()
         {
             string path = DirBoss + "/" + BossPrefabName + ".prefab";
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(path) != null)
+            GameObject existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (existing != null)
             {
-                Debug.Log("[Fase3] " + BossPrefabName + " já existe e foi MANTIDO (para não apagar seu sprite/animações). "
-                          + "Para recriar, apague " + path + " e rode o passo 1 de novo.");
+                if (existing.GetComponentInChildren<GGBossRig>(true) == null)
+                    Debug.Log("[Fase3] " + BossPrefabName + " existe com o visual ANTIGO (sem rig). Para usar a animação automática: "
+                              + "Pop Adventure > Fase 3 > Recriar Boss com Rig Procedural.");
+                else
+                    Debug.Log("[Fase3] " + BossPrefabName + " já existe com o rig e foi MANTIDO.");
                 return;
             }
-
-            UnityEditor.Animations.AnimatorController ctrl = GGBossAnimatorFactory.GetOrCreate();
-
-            GameObject root = new GameObject(BossPrefabName); // raiz = PÉS do boss
-            GGEditorUtil.AddKinematic(root);
-            GGEditorUtil.AddBox(root, new Vector2(1.6f, 3.6f), new Vector2(0f, 1.8f), true); // hurtbox / dano de contato
-
-            // Visual: origem nos pés; o código vira o scale.x aqui (NÃO anime o scale.x do Visual).
-            GameObject visual = GGEditorUtil.NewChild(root.transform, "Visual", Vector3.zero);
-            Animator animator = visual.AddComponent<Animator>();
-            animator.runtimeAnimatorController = ctrl;
-            animator.applyRootMotion = false;
-
-            // Body: aqui fica o SEU sprite (troque o sprite do SpriteRenderer) e é o objeto que você anima.
-            Vector2 size;
-            SpriteRenderer body = GGEditorUtil.AddSprite(visual.transform, "Body", "boss_placeholder", 0f, 0f, Anchor.FeetAtRoot, 2, out size);
-
-            GameObject muzzle = GGEditorUtil.NewChild(root.transform, "Muzzle", new Vector3(1.0f, 2.4f, 0f));
-            GameObject barGo = GGEditorUtil.NewChild(root.transform, "HealthBar", new Vector3(0f, 5.0f, 0f));
-            GGWorldHealthBar bar = barGo.AddComponent<GGWorldHealthBar>();
-
-            GGBoss boss = root.AddComponent<GGBoss>();
-            GGEditorUtil.SetMany(boss,
-                "bossName", "Groove King",
-                "visual", visual.transform,
-                "animator", animator,
-                "muzzle", muzzle.transform,
-                "healthBar", bar,
-                "spriteFacesRight", true,
-                "zombieHandPrefab", GGEditorUtil.LoadPrefab("ZombieHand"),
-                "shockwavePrefab", GGEditorUtil.LoadPrefab("BossShockwave"),
-                "orbPrefab", GGEditorUtil.LoadPrefab("BossOrb"),
-                "ghostPrefab", GGEditorUtil.LoadPrefab("Enemy_Ghost"),
-                "healNotePrefab", GGEditorUtil.LoadPrefab("Pickup_Note"),
-                "fragmentPrefab", GGEditorUtil.LoadPrefab("Pickup_Fragment"));
-
-            GGEditorUtil.SavePrefab(root, DirBoss, BossPrefabName);
+            GGBossRigBuilder.Build(false);
         }
 
         static void CreateArena()

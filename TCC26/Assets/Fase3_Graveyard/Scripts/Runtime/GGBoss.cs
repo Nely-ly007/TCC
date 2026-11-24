@@ -6,11 +6,12 @@ using UnityEngine.Events;
 namespace PopAdventure.Fase3
 {
     /// <summary>
-    /// Boss da Fase 3 (Graveyard Groove). A LÓGICA é toda por código e no ritmo da música (114 BPM);
-    /// a ANIMAÇÃO é 100% sua: coloque o sprite em Boss/Visual e monte as animações no Animator do Unity.
-    /// O script só dispara os parâmetros do Animator abaixo (se um parâmetro não existir, é ignorado em silêncio).
+    /// Boss da Fase 3 (Graveyard Groove). A LÓGICA é toda por código e no ritmo da música (114 BPM).
+    /// A ANIMAÇÃO é AUTOMÁTICA: o GGBossRig (no objeto Visual) move as peças do desenho pelo código.
+    /// Se você preferir animar à mão, deixe o campo "Rig" vazio e use um Animator: o script dispara os parâmetros abaixo
+    /// (se um parâmetro não existir, é ignorado em silêncio).
     ///
-    /// Parâmetros esperados no Animator:
+    /// Parâmetros do Animator (só usados quando NÃO há GGBossRig):
     ///   Bool    IsMoving      (andando/deslizando)
     ///   Trigger Intro         (entrada, ~8 batidas)
     ///   Trigger AttackDash    (aviso do deslize; depois ela desliza)
@@ -47,16 +48,18 @@ namespace PopAdventure.Fase3
         [Header("Arena (a raiz do Boss fica nos PÉS)")]
         [SerializeField] Transform leftLimit;
         [SerializeField] Transform rightLimit;
-        [Tooltip("De onde saem os orbs. Se vazio, usa 1.6 unidades acima dos pés.")]
+        [Tooltip("De onde saem os orbs (o X é sempre 'para frente', vire o boss para qualquer lado). Se vazio, usa 1.6 unidades acima dos pés.")]
         [SerializeField] Transform muzzle;
         [SerializeField] float walkSpeed = 2.5f;
         [SerializeField] float preferredDistance = 5f;
         [SerializeField] float dashUnitsPerBeat = 6f;
 
-        [Header("Visual / Animator (animação 100% sua)")]
+        [Header("Visual (rig automático ou Animator)")]
         [SerializeField] Transform visual;
+        [Tooltip("Animação automática por código. Se atribuído, o Animator abaixo não é necessário.")]
+        [SerializeField] GGBossRig rig;
         [SerializeField] Animator animator;
-        [Tooltip("Marque se o sprite original olha para a DIREITA.")]
+        [Tooltip("Marque se o sprite original olha para a DIREITA. Ignorado quando há GGBossRig (ele já sabe).")]
         [SerializeField] bool spriteFacesRight = true;
         [SerializeField] bool flashOnHit = true;
         [SerializeField] GGWorldHealthBar healthBar;
@@ -106,6 +109,7 @@ namespace PopAdventure.Fase3
         Attack lastAttack;
         bool hasLast;
         float flashUntil;
+        float facing = -1f;
         float lastHurtTrigger = -10f;
         bool wasFlashing;
         SpriteRenderer[] flashRenderers;
@@ -122,6 +126,16 @@ namespace PopAdventure.Fase3
             startPos = transform.position;
             currentContact = contactDamage;
             CurrentState = State.Dormant;
+
+            if (rig == null && visual != null) rig = visual.GetComponent<GGBossRig>();
+            if (rig == null) rig = GetComponentInChildren<GGBossRig>();
+            if (visual == null && rig != null) visual = rig.transform;
+            if (rig != null)
+            {
+                spriteFacesRight = !rig.ArtFacesLeft;
+                rig.SetPhase(1);
+            }
+            facing = spriteFacesRight ? 1f : -1f;
 
             if (animator == null && visual != null) animator = visual.GetComponent<Animator>();
             if (visual == null && animator != null) visual = animator.transform;
@@ -156,14 +170,27 @@ namespace PopAdventure.Fase3
             if (paramHashes.Contains(h)) animator.SetBool(h, value);
         }
 
+        /// <summary>Dispara a animação: no rig automático (se houver) e/ou no Animator (parâmetro opcional).</summary>
+        void Anim(string trigger, GGBossAnim anim, float beats, int stage = 0, double startBeat = double.NaN)
+        {
+            if (rig != null) rig.Play(anim, beats, stage, startBeat);
+            Trig(trigger);
+        }
+
         // ------------------------------------------------------------------ helpers
         float X { get { return transform.position.x; } }
         float Left { get { return leftLimit != null ? leftLimit.position.x : startPos.x - 12f; } }
         float Right { get { return rightLimit != null ? rightLimit.position.x : startPos.x + 12f; } }
 
+        /// <summary>Boca dos orbs: o offset do Muzzle é espelhado conforme o lado para onde o boss olha.</summary>
         Vector3 MuzzlePos
         {
-            get { return muzzle != null ? muzzle.position : transform.position + Vector3.up * 1.6f; }
+            get
+            {
+                Vector3 local = muzzle != null ? transform.InverseTransformPoint(muzzle.position) : new Vector3(0f, 1.6f, 0f);
+                local.x = Mathf.Abs(local.x) * facing;
+                return transform.TransformPoint(local);
+            }
         }
 
         void SetX(float x)
@@ -182,7 +209,9 @@ namespace PopAdventure.Fase3
 
         void Face(float dir)
         {
-            if (visual == null || Mathf.Abs(dir) < 0.01f) return;
+            if (Mathf.Abs(dir) < 0.01f) return;
+            facing = dir > 0f ? 1f : -1f;
+            if (visual == null) return;
             Vector3 s = visual.localScale;
             float sign = ((dir > 0f) == spriteFacesRight) ? 1f : -1f;
             s.x = Mathf.Abs(s.x) * sign;
@@ -229,7 +258,7 @@ namespace PopAdventure.Fase3
         IEnumerator IntroThenFight()
         {
             Face(DirToPlayer());
-            Trig(tIntro);
+            Anim(tIntro, GGBossAnim.Intro, introBeats);
             GGCameraFollow.Shake(0.3f, 0.5f);
             yield return StartCoroutine(GGBeat.Wait(introBeats));
             if (onFightStarted != null) onFightStarted.Invoke();
@@ -318,8 +347,9 @@ namespace PopAdventure.Fase3
         {
             float firstDir = DirToPlayer();
             Face(firstDir);
-            Trig(tDash);
-            yield return StartCoroutine(GGBeat.Wait(Phase >= 3 ? 1.0 : 2.0));
+            float warn = Phase >= 3 ? 1f : 2f;
+            Anim(tDash, GGBossAnim.Dash, warn, 0);                    // agacha e treme (aviso)
+            yield return StartCoroutine(GGBeat.Wait(warn));
 
             int dashes = Phase >= 3 ? 2 : 1;
             for (int i = 0; i < dashes; i++)
@@ -330,11 +360,18 @@ namespace PopAdventure.Fase3
                 Face(dir);
                 currentContact = dashDamage;
                 SetBool(pIsMoving, true);
+                Anim(null, GGBossAnim.Dash, (float)beats, 1);          // deslize
                 yield return StartCoroutine(MoveX(toX, beats));
                 SetBool(pIsMoving, false);
                 currentContact = contactDamage;
-                if (i < dashes - 1) yield return StartCoroutine(GGBeat.Wait(1.0));
+                if (i < dashes - 1)
+                {
+                    Face(-dir);                                        // vira e avisa de novo (1 batida)
+                    Anim(null, GGBossAnim.Dash, 1f, 0);
+                    yield return StartCoroutine(GGBeat.Wait(1.0));
+                }
             }
+            Anim(null, GGBossAnim.Dash, 1f, 2);                        // recuperação
             yield return StartCoroutine(GGBeat.Wait(1.0));
         }
 
@@ -343,12 +380,15 @@ namespace PopAdventure.Fase3
         {
             float dir = DirToPlayer();
             Face(dir);
-            Trig(tHands);
-            yield return StartCoroutine(GGBeat.Wait(1.0));
 
             int count = Phase == 1 ? 5 : (Phase == 2 ? 7 : 9);
+            double now = GGBeatClock.Position;
+            double startBeat = System.Math.Floor(now + 1.0) + 1.0;     // 1ª batida depois de >= 1 batida de aviso
+            double endBeat = startBeat + count * 0.5 + 2.6;
+            Anim(tHands, GGBossAnim.Hands, (float)(endBeat - now), 0, now);
+
+            yield return StartCoroutine(GGBeat.WaitUntil(now + 1.0));
             int gap = Random.Range(1, count - 1);
-            double startBeat = GGBeat.NextBeat();
             const float spacing = 2.4f;
             for (int i = 0; i < count; i++)
             {
@@ -357,34 +397,43 @@ namespace PopAdventure.Fase3
                 if (x < Left || x > Right) continue;
                 SpawnHand(x, startBeat + i * 0.5);
             }
-            yield return StartCoroutine(GGBeat.WaitUntil(startBeat + count * 0.5 + 2.6));
+            yield return StartCoroutine(GGBeat.WaitUntil(endBeat));
         }
 
         // 3) Giro: ondas de choque pelo chão para os dois lados (pule!). Fase 1: 1 onda, fase 2: 2, fase 3: 3.
+        //    Cada onda = um giro com pulinho; o pisão (e a onda) cai EXATAMENTE numa batida.
         IEnumerator SpinAttack()
         {
-            Trig(tSpin);
-            yield return StartCoroutine(GGBeat.Wait(1.0));
+            float spinBeats = Phase == 1 ? 4f : 3f;                    // duração de cada giro
+            const float stompBefore = 0.85f;                           // o pisão acontece em (duração - 0.85) — ver GGBossMotion.Spin
             for (int w = 0; w < Phase; w++)
             {
-                yield return StartCoroutine(GGBeat.WaitNextBeat());
+                double land = System.Math.Ceiling(GGBeatClock.Position + (spinBeats - stompBefore));
+                double start = land - (spinBeats - stompBefore);
+                yield return StartCoroutine(GGBeat.WaitUntil(start));
+                Anim(tSpin, GGBossAnim.Spin, spinBeats, 0, start);
+                yield return StartCoroutine(GGBeat.WaitUntil(land));
                 SpawnShockwave(-1f);
                 SpawnShockwave(1f);
                 GGCameraFollow.Shake(0.15f, 0.2f);
-                if (w < Phase - 1) yield return StartCoroutine(GGBeat.Wait(2.0));
+                yield return StartCoroutine(GGBeat.WaitUntil(start + spinBeats));
             }
-            yield return StartCoroutine(GGBeat.Wait(2.0));
+            yield return StartCoroutine(GGBeat.Wait(1.0));
         }
 
         // 4) Orbs mirados (fase 2+). Podem ser destruídos com a nota. Fase 3: leque de 3.
+        //    Cada orb sai numa batida, junto com o empurrão das mãos.
         IEnumerator OrbsAttack()
         {
-            Trig(tOrbs);
-            yield return StartCoroutine(GGBeat.Wait(1.0));
             int volleys = Phase >= 3 ? 4 : 3;
+            double now = GGBeatClock.Position;
+            double first = System.Math.Floor(now + 1.0) + 1.0;         // >= 1 batida de aviso
+            double endBeat = first + (volleys - 1) + 1.5;
+            Anim(tOrbs, GGBossAnim.Orbs, (float)(endBeat - now), 0, now);
+
             for (int v = 0; v < volleys; v++)
             {
-                yield return StartCoroutine(GGBeat.WaitNextBeat());
+                yield return StartCoroutine(GGBeat.WaitUntil(first + v));
                 Transform p = GGUtil.Player;
                 Vector2 muzzle2 = MuzzlePos;
                 Vector2 dir = p != null ? ((Vector2)(p.position + Vector3.up * 0.8f) - muzzle2).normalized : Vector2.left;
@@ -397,13 +446,13 @@ namespace PopAdventure.Fase3
                 }
                 else SpawnOrb(dir);
             }
-            yield return StartCoroutine(GGBeat.Wait(1.0));
+            yield return StartCoroutine(GGBeat.WaitUntil(endBeat));
         }
 
-        // 5) Invoca dois fantasmas que perseguem no ritmo (fase 2+).
+        // 5) Invoca dois fantasmas que perseguem no ritmo (fase 2+). Braços sobem, pisão em t = 2 batidas.
         IEnumerator GhostsAttack()
         {
-            Trig(tSummon);
+            Anim(tSummon, GGBossAnim.Summon, 4f);
             yield return StartCoroutine(GGBeat.Wait(2.0));
             float y = transform.position.y + 4f;
             SpawnGhost(new Vector3(Left + 1.5f, y, 0f));
@@ -495,6 +544,7 @@ namespace PopAdventure.Fase3
             if (healthBar != null) healthBar.SetValue(n);
             if (onHealthNormalized != null) onHealthNormalized.Invoke(n);
             flashUntil = Time.time + 0.1f;
+            if (rig != null) rig.Hurt();
             if (fireHurtTrigger && Time.time - lastHurtTrigger > 0.8f)
             {
                 Trig(tHurt);
@@ -519,7 +569,8 @@ namespace PopAdventure.Fase3
             currentContact = contactDamage;
             SetBool(pIsMoving, false);
             ClearHazards();
-            Trig(tPhaseChange);
+            if (rig != null) rig.SetPhase(Phase);
+            Anim(tPhaseChange, GGBossAnim.PhaseChange, 4f);
             if (onPhaseChanged != null) onPhaseChanged.Invoke(Phase);
             GGCameraFollow.Shake(0.5f, 0.7f);
             TryDropHealNote();
@@ -534,7 +585,7 @@ namespace PopAdventure.Fase3
             StopAllCoroutines();
             ClearHazards();
             SetBool(pIsMoving, false);
-            Trig(tDie);
+            Anim(tDie, GGBossAnim.Die, 0f);
             Collider2D[] cols = GetComponentsInChildren<Collider2D>();
             for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
             if (healthBar != null) healthBar.SetVisible(false);
@@ -571,6 +622,7 @@ namespace PopAdventure.Fase3
             for (int i = 0; i < cols.Length; i++) cols[i].enabled = true;
             if (healthBar != null) { healthBar.SetValue(1f); healthBar.SetVisible(false); }
             if (onHealthNormalized != null) onHealthNormalized.Invoke(1f);
+            if (rig != null) { rig.ResetToDormant(); rig.SetPhase(1); }
             if (animator != null && animator.runtimeAnimatorController != null)
             {
                 animator.Rebind();

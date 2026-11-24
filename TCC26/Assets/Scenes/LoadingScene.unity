@@ -375,6 +375,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CameraShake
   defaultShakeDuration: 0.1
   defaultShakeMagnitude: 0.1
+  pulseIntensity: 0.05
+  pulseDurationPercent: 0.2
+  minPulseDuration: 0.04
+  maxPulseDuration: 0.18
 --- !u!1 &476268636
 GameObject:
   m_ObjectHideFlags: 0
@@ -664,6 +668,55 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 709062414}
   m_CullTransparentMesh: 1
+--- !u!1 &980141776
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 980141777}
+  - component: {fileID: 980141778}
+  m_Layer: 0
+  m_Name: PauseController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &980141777
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 980141776}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2141113682}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &980141778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 980141776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 539ada6abea9682439e75dccdd02ef21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PauseMenu
+  hubSceneName: Hub
+  backgroundColor: {r: 0, g: 0, b: 0, a: 0.85}
+  buttonColor: {r: 0.9, g: 0.1, b: 0.5, a: 1}
+  buttonHover: {r: 1, g: 0.85, b: 0.1, a: 1}
+  textColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1001 &982733741
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1326,9 +1379,17 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 3750732103356452092, guid: 891b2069206e2024cb397acef21bad82, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 980141777}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 891b2069206e2024cb397acef21bad82, type: 3}
+--- !u!4 &2141113682 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3750732103356452092, guid: 891b2069206e2024cb397acef21bad82, type: 3}
+  m_PrefabInstance: {fileID: 2141113681}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

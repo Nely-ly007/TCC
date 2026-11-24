@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 6669954488252723108}
   - component: {fileID: 7598400145235812688}
   - component: {fileID: 6985676346364145735}
+  - component: {fileID: 2059516432029484493}
   m_Layer: 0
   m_Name: notaAtack_0
   m_TagString: Untagged
@@ -183,3 +184,17 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 4.547247, y: 6.442237}
   m_EdgeRadius: 0
+--- !u!114 &2059516432029484493
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4933821102775095242}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 90c1ab6b24d2a0b4381c7adf812be680, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PopAdventure.Fase3.GGProjectileRelay
+  damage: 10
+  destroyOnHit: 0

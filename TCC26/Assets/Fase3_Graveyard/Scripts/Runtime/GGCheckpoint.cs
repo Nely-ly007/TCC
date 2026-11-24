@@ -10,11 +10,6 @@ namespace PopAdventure.Fase3
         [SerializeField] Color inactiveColor = new Color(0.42f, 0.42f, 0.5f, 1f);
         [SerializeField] Color activeColor = Color.white;
 
-        [Header("Efeitos Visuais")]
-        [SerializeField] AudioClip activateSFX;
-        [SerializeField] Color burstColor = new Color(1.00f, 0.45f, 0.08f); // laranja GG
-        [SerializeField] Color ringColor = new Color(0.85f, 0.95f, 1.00f); // branco espectral
-
         public bool IsActive { get; private set; }
 
         public Vector3 RespawnPosition
@@ -40,14 +35,6 @@ namespace PopAdventure.Fase3
             IsActive = true;
             if (GGLevelManager.Instance != null) GGLevelManager.Instance.SetCheckpoint(this);
             GGCameraFollow.Shake(0.12f, 0.15f);
-
-            // ── Efeitos visuais ──────────────────────────────────
-            Vector2 top = (Vector2)transform.position + Vector2.up * 1.1f;
-            GameFx.Burst(top, burstColor, 16, 5f, 0.7f, 0.2f, 2f);
-            GameFx.Ring(top, ringColor, 2.2f, 0.5f);
-            GameOverlay.Toast("CHECKPOINT", burstColor, 1.4f);
-            if (activateSFX != null)
-                AudioSource.PlayClipAtPoint(activateSFX, transform.position, 0.6f);
         }
 
         void Update()

@@ -70,6 +70,9 @@ namespace PopAdventure.Fase3.EditorTools
 
         static bool ConfigureOne(string path)
         {
+            // as peças do boss (PPU 530 e pivô nas articulações) são configuradas pelo GGBossRigBuilder
+            if (path.Contains("/" + GGBossRigLayout.ArtFolderName + "/")) return false;
+
             TextureImporter ti = AssetImporter.GetAtPath(path) as TextureImporter;
             if (ti == null) return false;
 

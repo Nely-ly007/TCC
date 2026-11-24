@@ -89,12 +89,12 @@ namespace PopAdventure.Fase3.EditorTools
             for (int i = 0; i < bx.Length; i++)
             {
                 GameObject p = Hang("Platform_Glowing_Blink", rhythm, bx[i], bs[i]);
-                Cfg<GGRhythmPlatform>(p, "periodBeats", 4, "onBeats", 3, "offsetBeats", (float)i);
+                Cfg<GGRhythmPlatform>(p, "periodBeats", 8, "onBeats", 6, "offsetBeats", i * 2f);   // 0, 2, 4, 6
                 Vinyls(bx[i], bs[i] + 1.8f);
             }
 
             GameObject r1 = Hang("Platform_Glowing_Rise", rhythm, 65f, 1f);
-            Cfg<GGRhythmPlatform>(r1, "periodBeats", 4, "onBeats", 2, "offsetBeats", 0f);
+            Cfg<GGRhythmPlatform>(r1, "periodBeats", 8, "onBeats", 6, "offsetBeats", 0f);
             Vinyls(65f, 2.9f);
 
             GameObject rail = Hang("Platform_Hanging_Rail", rhythm, 70f, 0f);
@@ -149,9 +149,9 @@ namespace PopAdventure.Fase3.EditorTools
             Cfg<GGPendulum>(pend1, "offsetBeats", 0f);
 
             GameObject r1 = Hang("Platform_Glowing_Rise", rhythm, 126f, 5f);
-            Cfg<GGRhythmPlatform>(r1, "periodBeats", 4, "onBeats", 2, "offsetBeats", 0f);
+            Cfg<GGRhythmPlatform>(r1, "periodBeats", 8, "onBeats", 6, "offsetBeats", 0f);
             GameObject r2 = Hang("Platform_Glowing_Rise", rhythm, 130f, 7f);
-            Cfg<GGRhythmPlatform>(r2, "periodBeats", 4, "onBeats", 2, "offsetBeats", 2f);
+            Cfg<GGRhythmPlatform>(r2, "periodBeats", 8, "onBeats", 6, "offsetBeats", 3f);
 
             GameObject pend2 = Mid("SpikedBall_Swing_Short", hazards, 130f, 11.5f);
             Cfg<GGPendulum>(pend2, "offsetBeats", 2f);
