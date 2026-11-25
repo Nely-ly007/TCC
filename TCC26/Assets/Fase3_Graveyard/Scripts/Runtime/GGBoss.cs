@@ -598,13 +598,17 @@ namespace PopAdventure.Fase3
         }
 
         IEnumerator DeathRoutine()
-        {
-            yield return new WaitForSeconds(1.8f);
-            if (fragmentPrefab != null)
-                Instantiate(fragmentPrefab, transform.position + Vector3.up * 1.5f, Quaternion.identity);
-            else
-                Debug.LogWarning("GGBoss: 'Fragment Prefab' não atribuído — o fragmento do Disco Dourado não será criado.", this);
-        }
+{
+    yield return new WaitForSeconds(1.8f);
+    if (fragmentPrefab != null)
+        Instantiate(fragmentPrefab, transform.position + Vector3.up * 1.5f, Quaternion.identity);
+    else
+        Debug.LogWarning("GGBoss: 'Fragment Prefab' não atribuído — o fragmento do Disco Dourado não será criado.", this);
+
+    // Aguarda mais um pouco para o fragmento aparecer antes de trocar de cena
+    yield return new WaitForSeconds(2.0f);
+    SceneManager.LoadScene("Ending");
+}
 
         /// <summary>Volta o boss ao estado inicial (usado quando o Player morre durante a luta).</summary>
         public void ResetFight()
