@@ -169,7 +169,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: RightLeg
+    path: Body/RightLeg
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -221,7 +221,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: LeftLeg
+    path: Body/LeftLeg
   m_PositionCurves:
   - curve:
       serializedVersion: 2

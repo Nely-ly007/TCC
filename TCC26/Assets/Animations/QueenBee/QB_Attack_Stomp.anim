@@ -74,7 +74,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: RightLeg
+    path: Body/RightLeg
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -135,7 +135,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: LeftLeg
+    path: Body/LeftLeg
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -309,7 +309,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Torso/LeftArmUpper
+    path: Body/torso/LeftArmUpper
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -361,7 +361,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Torso/RightArmUpper
+    path: Body/torso/RightArmUpper
   m_PositionCurves:
   - curve:
       serializedVersion: 2
@@ -476,7 +476,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Torso
+    path: Body/torso
   m_FloatCurves: []
   m_PPtrCurves: []
   m_SampleRate: 12
@@ -497,7 +497,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 2252147196
+      path: 3697623316
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -507,7 +507,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 101577729
+      path: 1536821247
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -537,7 +537,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 1779494349
+      path: 2001725421
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -547,7 +547,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 1045820845
+      path: 86411887
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -557,7 +557,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 3869152129
+      path: 3234412124
       attribute: 3
       script: {fileID: 0}
       typeID: 4

@@ -185,7 +185,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Torso/LeftArmUpper
+    path: Body/torso/LeftArmUpper
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -228,7 +228,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Torso/RightArmUpper
+    path: Body/torso/RightArmUpper
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -271,7 +271,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: LeftLeg
+    path: Body/LeftLeg
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -314,7 +314,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: RightLeg
+    path: Body/RightLeg
   m_PositionCurves:
   - curve:
       serializedVersion: 2
@@ -456,7 +456,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_Color.a
-    path: LeftLeg
+    path: Body/LeftLeg
     classID: 212
     script: {fileID: 0}
     flags: 0
@@ -486,7 +486,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_Color.a
-    path: RightLeg
+    path: Body/RightLeg
     classID: 212
     script: {fileID: 0}
     flags: 0
@@ -516,7 +516,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_Color.a
-    path: Torso
+    path: Body/torso
     classID: 212
     script: {fileID: 0}
     flags: 0
@@ -546,7 +546,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_Color.a
-    path: Torso/LeftArmUpper
+    path: Body/torso/LeftArmUpper
     classID: 212
     script: {fileID: 0}
     flags: 0
@@ -576,7 +576,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_Color.a
-    path: Torso/LeftArmUpper/LeftForearm
+    path: Body/torso/LeftArmUpper/LeftForearm
     classID: 212
     script: {fileID: 0}
     flags: 0
@@ -606,7 +606,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_Color.a
-    path: Torso/RightArmUpper
+    path: Body/torso/RightArmUpper
     classID: 212
     script: {fileID: 0}
     flags: 0
@@ -636,7 +636,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_Color.a
-    path: Torso/RightArmUpper/RightForearm
+    path: Body/torso/RightArmUpper/RightForearm
     classID: 212
     script: {fileID: 0}
     flags: 0
@@ -666,7 +666,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_Color.a
-    path: Torso/Head
+    path: Body/torso/Head
     classID: 212
     script: {fileID: 0}
     flags: 0
@@ -696,7 +696,7 @@ AnimationClip:
       m_PostInfinity: 2
       m_RotationOrder: 4
     attribute: m_Color.a
-    path: Torso/Head/Hair
+    path: Body/torso/Head/Hair
     classID: 212
     script: {fileID: 0}
     flags: 0
@@ -749,7 +749,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 1779494349
+      path: 2001725421
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -759,7 +759,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 1045820845
+      path: 86411887
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -769,7 +769,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 101577729
+      path: 1536821247
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -779,7 +779,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 2252147196
+      path: 3697623316
       attribute: 4
       script: {fileID: 0}
       typeID: 4
@@ -809,7 +809,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 101577729
+      path: 1536821247
       attribute: 304273561
       script: {fileID: 0}
       typeID: 212
@@ -819,7 +819,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 2252147196
+      path: 3697623316
       attribute: 304273561
       script: {fileID: 0}
       typeID: 212
@@ -829,7 +829,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 3869152129
+      path: 3234412124
       attribute: 304273561
       script: {fileID: 0}
       typeID: 212
@@ -839,7 +839,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 1779494349
+      path: 2001725421
       attribute: 304273561
       script: {fileID: 0}
       typeID: 212
@@ -849,7 +849,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 122352358
+      path: 3896772985
       attribute: 304273561
       script: {fileID: 0}
       typeID: 212
@@ -859,7 +859,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 1045820845
+      path: 86411887
       attribute: 304273561
       script: {fileID: 0}
       typeID: 212
@@ -869,7 +869,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 1567665426
+      path: 2177302365
       attribute: 304273561
       script: {fileID: 0}
       typeID: 212
@@ -879,7 +879,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 2146230158
+      path: 3725669952
       attribute: 304273561
       script: {fileID: 0}
       typeID: 212
@@ -889,7 +889,7 @@ AnimationClip:
       isSerializeReferenceCurve: 0
       metaData: 0
     - serializedVersion: 2
-      path: 3767317810
+      path: 400457745
       attribute: 304273561
       script: {fileID: 0}
       typeID: 212

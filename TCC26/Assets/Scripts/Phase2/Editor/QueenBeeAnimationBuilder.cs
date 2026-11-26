@@ -139,20 +139,6 @@ public static class QueenBeeAnimationBuilder
     }
 
     // Adiciona Animation Event (método sem parâmetros)
-    static void AddEvent(AnimationClip clip, int frame, string method)
-    {
-        var ev = new AnimationEvent();
-        ev.time = T(frame);
-        ev.functionName = method;
-        AnimationUtility.SetAnimationEvents(clip,
-            System.Array.ConvertAll(
-                System.Array.FindAll(AnimationUtility.GetAnimationEvents(clip), _ => true)
-                    .Union(new[] { ev })
-                    .ToArray(System.Linq.Enumerable.ToArray),
-                x => x));
-    }
-
-    // Versão mais simples para adicionar evento
     static void Evt(AnimationClip clip, int frame, string method)
     {
         var existing = AnimationUtility.GetAnimationEvents(clip);

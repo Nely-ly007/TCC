@@ -169,7 +169,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Torso/Head
+    path: Body/torso/Head
   - curve:
       serializedVersion: 2
       m_Curve:
@@ -221,7 +221,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Torso/Head/Hair
+    path: Body/torso/Head/Hair
   m_PositionCurves:
   - curve:
       serializedVersion: 2
@@ -274,7 +274,7 @@ AnimationClip:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-    path: Torso
+    path: Body/torso
   m_ScaleCurves: []
   m_FloatCurves: []
   m_PPtrCurves: []
